@@ -797,6 +797,8 @@ function enviarPedido(){
   tgMsg+='TOTAL: S/ '+t.total.toFixed(2)+' | '+pagoLabel;
 
   // ── Generar enlace de registro rápido para App Caja ──
+  var TELEGRAM_GRUPO_ID = '-1003363051717';
+
   var pedidoData = {
     n: nombre, t: tel, p: metodoPago==='yape'?'y':'e',
     e: tipoEntrega==='delivery'?'d':'r',
@@ -805,7 +807,9 @@ function enviarPedido(){
   };
   var pedidoB64 = btoa(unescape(encodeURIComponent(JSON.stringify(pedidoData))));
   var cajaLink = CAJA_URL + '?pedido=' + pedidoB64;
-  waLineas += '\n\n🔗 *[Registrar en Caja]*\n' + cajaLink;
+
+  // Mensaje al grupo privado de Telegram (con enlace, solo para el vendedor y hermano)
+  var tgGrupoMsg = tgMsg + '\n\n🔗 Registrar en Caja:\n' + cajaLink;
 
   // ── 1. Registrar cliente y descontar stock (inmediato) ──
   var esN=true;
@@ -813,9 +817,13 @@ function enviarPedido(){
   if(esN){clientesPrevios.push(tel);try{localStorage.setItem('avicen_clientes',JSON.stringify(clientesPrevios));}catch(e){}}
   descontarStockPorPedido(carrito);
 
-  // ── 2. Telegram en segundo plano (sin bloquear) ──
+  // ── 2. Telegram: mensaje simple al chat personal + enlace al grupo privado ──
   try{
+    // Chat personal — solo notificación del pedido
     fetch('https://api.telegram.org/bot'+TELEGRAM_TOKEN+'/sendMessage?chat_id='+encodeURIComponent(TELEGRAM_CHAT_ID)+'&text='+encodeURIComponent(tgMsg))
+    .catch(function(){});
+    // Grupo privado — con enlace de registro (solo tú y tu hermano lo ven)
+    fetch('https://api.telegram.org/bot'+TELEGRAM_TOKEN+'/sendMessage?chat_id='+encodeURIComponent(TELEGRAM_GRUPO_ID)+'&text='+encodeURIComponent(tgGrupoMsg))
     .catch(function(){});
   }catch(e){}
 
