@@ -328,7 +328,7 @@ var CLAVE_KEY = 'avicen_admin_clave';
 var CLAVE_DEFAULT = 'avicen2024';
 var CAJA_KEY = 'avicen_caja_v3';
 var STOCK_KEY = 'avicen_stock_v3';
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwebPNrOOMmWqfBtWJpA1722TbTfdsVmqglmjCXbxXMiJOZQY5bobGmUd_yxRgcBg0R/exec';
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxFpZ7qwcW5c71qnUI9gQUp2t99EKjSeFzsFZEiNNwq832l5w5Kfl029ASucofyzEie/exec';
 var TELEGRAM_TOKEN = '8667281211:AAF9oTEWeHJhKpDXFYFjpUj7uudKBbojxc0';
 var TELEGRAM_GRUPO_ID = '-1003363051717';
 
@@ -369,13 +369,6 @@ function hacerLogin(){
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     cargarDatos();
-    renderPrecios();
-    renderCaja();
-    renderStock();
-    // Verificar si hay pedido en URL
-    var urlParams = new URLSearchParams(window.location.search);
-    var pedidoParam = urlParams.get('pedido');
-    if(pedidoParam) mostrarPedidoRapido(pedidoParam);
   } else {
     err.style.display = 'block';
     document.getElementById('login-pass').value = '';
@@ -389,8 +382,77 @@ function salir(){
   document.getElementById('login-pass').value = '';
 }
 
-// ── CARGA DE DATOS ──
+// ── CARGA DE DATOS DESDE GOOGLE SHEETS ──
 function cargarDatos(){
+  // Mostrar loading
+  document.getElementById('stats-wrap').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--texto3);font-size:13px;">⏳ Cargando datos...</div>';
+
+  fetch(SHEETS_URL)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error){
+        cargarDatosLocales();
+        return;
+      }
+      // Cargar ventas y gastos
+      registros = [];
+      if(data.ventas) data.ventas.forEach(function(v){
+        registros.push({
+          id: v.id||Date.now(), tipo:'venta',
+          fecha: v.fecha, fechaStr: v.fechaStr,
+          cliente: v.cliente, tel: v.tel,
+          pago: v.pago, entrega: v.entrega,
+          items: v.items||[], total: parseFloat(v.total)||0,
+          montoReal: parseFloat(v.montoReal||v.total)||0
+        });
+      });
+      if(data.gastos) data.gastos.forEach(function(g){
+        registros.push({
+          id: g.id||Date.now(), tipo:'gasto',
+          fecha: g.fecha, fechaStr: g.fechaStr,
+          desc: g.desc, total: parseFloat(g.total)||0
+        });
+      });
+
+      // Cargar stock
+      if(data.stock && Object.keys(data.stock).length>0){
+        stockData = data.stock;
+      } else {
+        PRODUCTOS.forEach(function(p){
+          if(!stockData[p.id]) stockData[p.id]={kg:0,und:0,costoKg:0};
+        });
+      }
+
+      // Cargar precios
+      if(data.precios && Object.keys(data.precios).length>0){
+        precios = data.precios;
+      } else {
+        precios = JSON.parse(JSON.stringify(PRECIOS_BASE));
+      }
+
+      // También guardar en local como respaldo
+      try{
+        localStorage.setItem(CAJA_KEY, JSON.stringify(registros));
+        localStorage.setItem(STOCK_KEY, JSON.stringify(stockData));
+        localStorage.setItem(PRECIOS_KEY, JSON.stringify(precios));
+      }catch(e){}
+
+      renderPrecios();
+      renderCaja();
+      renderStock();
+
+      // Verificar si hay pedido en URL
+      var urlParams = new URLSearchParams(window.location.search);
+      var pedidoParam = urlParams.get('pedido');
+      if(pedidoParam) mostrarPedidoRapido(pedidoParam);
+    })
+    .catch(function(){
+      // Sin internet — usar datos locales
+      cargarDatosLocales();
+    });
+}
+
+function cargarDatosLocales(){
   try{
     var r = localStorage.getItem(CAJA_KEY);
     if(r) registros = JSON.parse(r);
@@ -404,11 +466,26 @@ function cargarDatos(){
     PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};});
     precios = JSON.parse(JSON.stringify(PRECIOS_BASE));
   }
+  renderPrecios();
+  renderCaja();
+  renderStock();
+  var urlParams = new URLSearchParams(window.location.search);
+  var pedidoParam = urlParams.get('pedido');
+  if(pedidoParam) mostrarPedidoRapido(pedidoParam);
 }
 
 function guardarCaja(){try{localStorage.setItem(CAJA_KEY,JSON.stringify(registros));}catch(e){}}
 function guardarStock(){
   try{localStorage.setItem(STOCK_KEY,JSON.stringify(stockData));}catch(e){}
+  // Sincronizar stock completo a Sheets
+  try{
+    var items = PRODUCTOS.map(function(p){
+      var s = stockData[p.id]||{kg:0,und:0,costoKg:0};
+      return {id:p.id, kg:s.kg, und:s.und, costoKg:s.costoKg};
+    });
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'stock',items:items})}).catch(function(){});
+  }catch(e){}
   verificarStockCritico();
 }
 
@@ -933,6 +1010,9 @@ function guardarPrecios(){
   try{
     localStorage.setItem(PRECIOS_KEY, JSON.stringify(precios));
     localStorage.setItem('avicen_precios_fecha', new Date().toISOString());
+    // Sincronizar precios a Sheets
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'precios',precios:precios})}).catch(function(){});
   }catch(e){}
   mostrarToast('Precios guardados ✓','ok');
   renderPrecios();
@@ -1000,13 +1080,16 @@ function exportarExcel(p){
 }
 
 function reiniciarDatos(){
-  if(!confirm('¿Seguro que quieres borrar TODOS los datos?\n\nEsto eliminará todas las ventas, gastos y stock de este dispositivo.\n\nEsta acción NO se puede deshacer.')) return;
+  if(!confirm('¿Seguro que quieres borrar TODOS los datos?\n\nEsto eliminará todas las ventas, gastos y stock de este dispositivo y Google Sheets.\n\nEsta acción NO se puede deshacer.')) return;
   try{
     localStorage.removeItem(CAJA_KEY);
     localStorage.removeItem(STOCK_KEY);
     localStorage.removeItem('avicen_pedidos_registrados');
     registros = [];
     PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};});
+    // Borrar en Sheets también
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'borrar_todo'})}).catch(function(){});
   }catch(e){}
   renderCaja(); renderStock();
   mostrarToast('Datos reiniciados ✓','ok');
