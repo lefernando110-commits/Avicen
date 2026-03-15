@@ -252,33 +252,38 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
   <div id="alertas-stock"></div>
   <div class="form-section">
     <div class="form-title">Registrar compra al proveedor</div>
-    <div style="background:var(--verde-light);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--verde-dark);margin-bottom:10px;">
-      🐔 Compra pollos enteros → el sistema calcula automáticamente los cortes al trozar
-    </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Unidades de pollo entero</label>
-        <input class="form-input" id="sc-und" type="number" placeholder="Ej: 10" oninput="calcTrozado()">
+        <label class="form-label">Unidades compradas</label>
+        <input class="form-input" id="sc-und" type="number" placeholder="Ej: 10" oninput="calcResumenCompra()">
       </div>
-      <div class="form-group">
-        <label class="form-label">Peso promedio por pollo (kg)</label>
-        <input class="form-input" id="sc-peso" type="number" placeholder="Ej: 2.5" step="0.1" oninput="calcTrozado()">
-      </div>
-    </div>
-    <div class="form-row">
       <div class="form-group">
         <label class="form-label">Costo total (S/)</label>
-        <input class="form-input" id="sc-costo" type="number" placeholder="0.00" oninput="calcTrozado()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">¿Vende pollo entero también?</label>
-        <select class="form-select" id="sc-vende-entero" onchange="calcTrozado()">
-          <option value="no">No — todo se trozea</option>
-          <option value="si">Sí — parte entero</option>
-        </select>
+        <input class="form-input" id="sc-costo" type="number" placeholder="0.00" oninput="calcResumenCompra()">
       </div>
     </div>
-    <div id="sc-trozado-info" style="display:none;background:var(--gris);border-radius:var(--rs);padding:10px;margin-bottom:8px;font-size:12px;line-height:1.8;"></div>
+    <div class="form-title" style="margin-top:8px;">Kg reales obtenidos por corte</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">🐔 Pollo entero</label>
+        <input class="form-input" id="sc-kg-entero" type="number" placeholder="0.0" step="0.1" oninput="calcResumenCompra()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🍖 Pierna/Pecho</label>
+        <input class="form-input" id="sc-kg-pierna" type="number" placeholder="0.0" step="0.1" oninput="calcResumenCompra()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">🍗 Alitas</label>
+        <input class="form-input" id="sc-kg-alitas" type="number" placeholder="0.0" step="0.1" oninput="calcResumenCompra()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🥩 Pecho s/hueso</label>
+        <input class="form-input" id="sc-kg-pecho" type="number" placeholder="0.0" step="0.1" oninput="calcResumenCompra()">
+      </div>
+    </div>
+    <div id="sc-resumen-info" style="display:none;background:var(--verde-light);border-radius:var(--rs);padding:10px;margin-bottom:8px;font-size:12px;color:var(--verde-dark);line-height:1.8;"></div>
     <button class="btn-verde" onclick="guardarCompra()">Registrar compra (descuenta de caja)</button>
   </div>
   <div id="stock-productos"></div>
@@ -1013,47 +1018,44 @@ function guardarGasto(){
 }
 
 // ── STOCK ──
-var TROZADO = {'descargado-pierna':0.35,'alitas':0.15,'pecho-sin-hueso':0.20};
 
-function calcCostoKg(){} // mantener por compatibilidad
+function calcCostoKg(){}
+function calcTrozado(){}
 
-function calcTrozado(){
+function calcResumenCompra(){
   var und = parseInt(document.getElementById('sc-und').value)||0;
-  var peso = parseFloat(document.getElementById('sc-peso').value)||0;
   var costo = parseFloat(document.getElementById('sc-costo').value)||0;
-  var vendeEntero = document.getElementById('sc-vende-entero').value==='si';
-  var el = document.getElementById('sc-trozado-info');
-  if(und<=0||peso<=0){el.style.display='none';return;}
-  var kgTotal = und*peso;
-  var costoKg = costo>0?costo/kgTotal:0;
-  var kgPierna=Math.round(kgTotal*0.35*10)/10;
-  var kgAlitas=Math.round(kgTotal*0.15*10)/10;
-  var kgPecho=Math.round(kgTotal*0.20*10)/10;
-  var kgEntero=vendeEntero?Math.round(kgTotal*0.30*10)/10:0;
+  var kgEntero = parseFloat(document.getElementById('sc-kg-entero').value)||0;
+  var kgPierna = parseFloat(document.getElementById('sc-kg-pierna').value)||0;
+  var kgAlitas = parseFloat(document.getElementById('sc-kg-alitas').value)||0;
+  var kgPecho = parseFloat(document.getElementById('sc-kg-pecho').value)||0;
+  var el = document.getElementById('sc-resumen-info');
+  var kgTotal = kgEntero+kgPierna+kgAlitas+kgPecho;
+  if(kgTotal<=0){el.style.display='none';return;}
+  var costoKg = (costo>0&&kgTotal>0)?costo/kgTotal:0;
   el.style.display='block';
-  el.innerHTML='<strong>🐔 '+und+' pollos × '+peso+'kg = '+kgTotal.toFixed(1)+' kg totales</strong><br>'
-    +(costoKg>0?'💰 Costo/kg: S/ '+costoKg.toFixed(2)+'<br>':'')
-    +'<br>Distribución al trozar:<br>'
-    +(vendeEntero?'🐔 Entero: '+kgEntero+' kg<br>':'')
-    +'🍖 Pierna/Pecho: '+kgPierna+' kg<br>'
-    +'🍗 Alitas: '+kgAlitas+' kg<br>'
-    +'🥩 Pecho s/hueso: '+kgPecho+' kg';
+  el.innerHTML='<strong>📦 Resumen</strong><br>'
+    +(und>0?'🐔 '+und+' pollos comprados<br>':'')
+    +'⚖️ Total kg vendibles: '+kgTotal.toFixed(1)+' kg<br>'
+    +(costoKg>0?'💰 Costo/kg: S/ '+costoKg.toFixed(2):'');
 }
 
 function guardarCompra(){
   var und = parseInt(document.getElementById('sc-und').value)||0;
-  var peso = parseFloat(document.getElementById('sc-peso').value)||0;
   var costo = parseFloat(document.getElementById('sc-costo').value)||0;
-  var vendeEntero = document.getElementById('sc-vende-entero').value==='si';
-  if(und<=0||peso<=0){mostrarToast('Ingresa unidades y peso','error');return;}
-  var kgTotal = und*peso;
+  var kgEntero = parseFloat(document.getElementById('sc-kg-entero').value)||0;
+  var kgPierna = parseFloat(document.getElementById('sc-kg-pierna').value)||0;
+  var kgAlitas = parseFloat(document.getElementById('sc-kg-alitas').value)||0;
+  var kgPecho = parseFloat(document.getElementById('sc-kg-pecho').value)||0;
+  var kgTotal = kgEntero+kgPierna+kgAlitas+kgPecho;
+  if(kgTotal<=0){mostrarToast('Ingresa los kg de al menos un corte','error');return;}
   var costoKg = costo>0?costo/kgTotal:0;
-  var cortes = [
-    {id:'descargado-pierna',kg:Math.round(kgTotal*0.35*10)/10},
-    {id:'alitas',kg:Math.round(kgTotal*0.15*10)/10},
-    {id:'pecho-sin-hueso',kg:Math.round(kgTotal*0.20*10)/10}
-  ];
-  if(vendeEntero) cortes.push({id:'entero',kg:Math.round(kgTotal*0.30*10)/10});
+  var cortes=[
+    {id:'entero',kg:kgEntero},
+    {id:'descargado-pierna',kg:kgPierna},
+    {id:'alitas',kg:kgAlitas},
+    {id:'pecho-sin-hueso',kg:kgPecho}
+  ].filter(function(c){return c.kg>0;});
   cortes.forEach(function(a){
     if(!stockData[a.id]) stockData[a.id]={kg:0,und:0,costoKg:0};
     var s=stockData[a.id];
@@ -1061,21 +1063,25 @@ function guardarCompra(){
     s.costoKg=tkn>0?((s.kg*s.costoKg)+(a.kg*costoKg))/tkn:costoKg;
     s.kg=Math.round((s.kg+a.kg)*10)/10;
   });
-  if(!stockData['entero']) stockData['entero']={kg:0,und:0,costoKg:0};
-  stockData['entero'].und+=und;
+  if(und>0){
+    if(!stockData['entero']) stockData['entero']={kg:0,und:0,costoKg:0};
+    stockData['entero'].und+=und;
+  }
   var ahora=new Date();
   if(costo>0){
+    var desc='Compra: '+und+' pollos → '+kgTotal.toFixed(1)+'kg vendibles';
     registros.push({id:Date.now(),tipo:'gasto',fecha:ahora.toISOString(),
       fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
-      desc:'Compra: '+und+' pollos × '+peso+'kg = '+kgTotal.toFixed(1)+'kg',total:costo});
+      desc:desc,total:costo});
     enviarASheets({tipo:'gasto',fecha:ahora.toISOString(),
       fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
-      desc:'Compra: '+und+' pollos × '+peso+'kg',total:costo});
+      desc:desc,total:costo});
   }
   guardarCaja();guardarStock();
-  ['sc-und','sc-peso','sc-costo'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('sc-trozado-info').style.display='none';
-  mostrarToast('Compra registrada — '+kgTotal.toFixed(1)+'kg distribuidos ✓','ok');
+  ['sc-und','sc-costo','sc-kg-entero','sc-kg-pierna','sc-kg-alitas','sc-kg-pecho']
+    .forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('sc-resumen-info').style.display='none';
+  mostrarToast('Compra registrada — '+kgTotal.toFixed(1)+'kg en stock ✓','ok');
   renderStock();renderCaja();
 }
 
