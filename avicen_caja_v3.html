@@ -464,8 +464,12 @@ function mostrarPedidoRapido(b64){
 
     // Si tiene combo, mostrar campo para ingresar precio
     var campoCombo = d.combo
-      ? '<div style="margin:10px 0"><div style="font-size:11px;opacity:.7;margin-bottom:4px;">💰 Ingresa el precio acordado con el cliente:</div>'
-        +'<input type="number" id="combo-precio-input" placeholder="S/ 0.00" step="0.10" style="width:100%;padding:10px;border-radius:var(--rs);border:none;font-size:16px;text-align:center;font-weight:700;"></div>'
+      ? '<div style="margin:12px 0;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:12px;">'
+        +'<div style="font-size:12px;color:white;margin-bottom:8px;font-weight:600;">💰 Precio acordado con el cliente:</div>'
+        +'<input type="number" id="combo-precio-input" placeholder="0.00" step="0.10" min="0.10"'
+        +' style="width:100%;padding:12px;border-radius:var(--rs);border:2px solid #C9A84C;font-size:20px;text-align:center;font-weight:700;background:white;color:#1B4332;">'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:6px;text-align:center;">Ingresa el monto antes de registrar</div>'
+        +'</div>'
       : '';
 
     wrap.innerHTML = '<div class="pedido-rapido-banner">'
