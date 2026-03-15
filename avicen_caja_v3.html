@@ -297,8 +297,11 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
     <button class="btn-verde" onclick="guardarPrecios()">Guardar precios</button>
     <div id="precios-aviso" style="font-size:12px;color:var(--texto3);text-align:center;margin-top:8px;"></div>
   </div>
-  <div class="form-section">
-    <div class="form-title">Cambiar clave de acceso</div>
+  <div class="form-section" style="border-color:var(--rojo);">
+    <div class="form-title" style="color:var(--rojo);">⚠️ Zona de peligro</div>
+    <div style="font-size:12px;color:var(--texto3);margin-bottom:12px;line-height:1.6;">Borra todas las ventas, gastos y stock registrados en este dispositivo. No se puede deshacer.</div>
+    <button onclick="reiniciarDatos()" style="width:100%;padding:12px;background:white;color:var(--rojo);border:2px solid var(--rojo);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">🗑️ Reiniciar todos los datos</button>
+  </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Nueva clave (mín. 6 caracteres)</label>
@@ -919,6 +922,19 @@ function exportarExcel(p){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   mostrarToast('Excel '+periodos[periodo]+' descargado ✓','ok');
+}
+
+function reiniciarDatos(){
+  if(!confirm('¿Seguro que quieres borrar TODOS los datos?\n\nEsto eliminará todas las ventas, gastos y stock de este dispositivo.\n\nEsta acción NO se puede deshacer.')) return;
+  try{
+    localStorage.removeItem(CAJA_KEY);
+    localStorage.removeItem(STOCK_KEY);
+    localStorage.removeItem('avicen_pedidos_registrados');
+    registros = [];
+    PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};});
+  }catch(e){}
+  renderCaja(); renderStock();
+  mostrarToast('Datos reiniciados ✓','ok');
 }
 
 // ── CAMBIAR CLAVE ──
