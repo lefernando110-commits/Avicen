@@ -405,10 +405,10 @@ function mostrarPedidoRapido(b64){
     var json = decodeURIComponent(escape(atob(b64)));
     var d = JSON.parse(json);
 
-    // Verificar si ya fue registrado
+    // Verificar si ya fue registrado usando fecha exacta del pedido
     var yaRegistrados = [];
     try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
-    var idPedido = b64.substring(0,20); // usar primeros 20 chars como ID único
+    var idPedido = d.fecha + '_' + d.n + '_' + d.total; // ID único: fecha + cliente + total
     if(yaRegistrados.indexOf(idPedido)!==-1){
       document.getElementById('pedido-rapido-wrap').innerHTML =
         '<div style="background:#D1FAE5;border:1px solid var(--verde);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
@@ -456,10 +456,10 @@ function registrarPedidoRapido(b64){
       }
     });
     guardarCaja(); guardarStock();
-    // Marcar pedido como ya registrado
+    // Marcar pedido como ya registrado usando fecha exacta
     var yaRegistrados = [];
     try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
-    var idPedido = b64.substring(0,20);
+    var idPedido = d.fecha + '_' + d.n + '_' + d.total;
     if(yaRegistrados.indexOf(idPedido)===-1) yaRegistrados.push(idPedido);
     if(yaRegistrados.length>200) yaRegistrados = yaRegistrados.slice(-200);
     try{localStorage.setItem('avicen_pedidos_registrados',JSON.stringify(yaRegistrados));}catch(e){}
