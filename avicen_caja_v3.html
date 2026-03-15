@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>AVICEN — Caja</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--verde:#2D6A4F;--verde-dark:#1B4332;--verde-mid:#40916C;--verde-light:#D8F3DC;--tierra:#8B5E3C;--tierra-light:#F4E4D4;--tierra-dark:#5C3D1E;--dorado:#C9A84C;--dorado-light:#FDF5E0;--crema:#FAF7F2;--blanco:#FFFFFF;--gris:#F0EDE8;--gris2:#DDD8D0;--texto:#1A1209;--texto2:#4A3728;--texto3:#8A7060;--borde:#DDD0C0;--rojo:#C0392B;--r:14px;--rs:8px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);min-height:100vh;padding-bottom:80px;}
+/* LOGIN */
+.login-wrap{position:fixed;inset:0;background:var(--verde-dark);display:flex;align-items:center;justify-content:center;padding:20px;z-index:900;}
+.login-box{background:white;border-radius:var(--r);padding:32px 24px;width:100%;max-width:320px;text-align:center;}
+.login-logo{font-family:'Playfair Display',serif;font-size:36px;font-weight:900;color:var(--verde-dark);}
+.login-sub{font-size:12px;color:var(--texto3);margin-bottom:24px;letter-spacing:2px;}
+.login-input{width:100%;padding:12px 16px;border:2px solid var(--borde);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:16px;text-align:center;letter-spacing:4px;margin-bottom:12px;}
+.login-input:focus{outline:none;border-color:var(--verde);}
+.login-btn{width:100%;padding:14px;background:var(--verde);color:white;border:none;border-radius:var(--rs);font-family:'Playfair Display',serif;font-size:18px;font-weight:700;cursor:pointer;}
+.login-err{font-size:12px;color:var(--rojo);margin-top:8px;display:none;}
+/* TOPBAR */
+.topbar{background:var(--verde-dark);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:white;}
+.topbar-sub{font-size:10px;color:rgba(255,255,255,.6);letter-spacing:1px;}
+.topbar-btns{display:flex;gap:8px;}
+.topbar-btn{padding:7px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:white;font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;cursor:pointer;}
+/* TABS */
+.main-tabs{display:flex;background:var(--gris);border-radius:var(--rs);padding:3px;margin:12px 16px 0;overflow-x:auto;scrollbar-width:none;}
+.main-tabs::-webkit-scrollbar{display:none;}
+.main-tab{flex-shrink:0;flex:1;padding:9px 6px;border:none;background:transparent;border-radius:6px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;color:var(--texto2);cursor:pointer;white-space:nowrap;}
+.main-tab.active{background:var(--verde-dark);color:white;}
+.view{display:none;padding:12px 16px;}.view.active{display:block;}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--rs);padding:12px;}
+.stat-card.full{grid-column:1/-1;border-left:4px solid var(--verde);}
+.stat-card.rojo{border-left:4px solid var(--rojo);}
+.stat-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--verde);}
+.stat-val.rojo{color:var(--rojo);}
+.stat-val.azul{color:#6C3FC5;}
+.stat-label{font-size:11px;color:var(--texto3);margin-top:2px;}
+/* PERIODOS */
+.periodo-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;}
+.periodo-row::-webkit-scrollbar{display:none;}
+.periodo-btn{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid var(--borde);background:var(--blanco);font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:var(--texto2);cursor:pointer;}
+.periodo-btn.active{background:var(--verde);border-color:var(--verde);color:white;}
+/* FORM */
+.form-section{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.form-title{font-size:11px;font-weight:700;color:var(--texto3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--borde);}
+.form-row{display:flex;gap:8px;margin-bottom:8px;}
+.form-group{flex:1;display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:11px;font-weight:500;color:var(--texto3);}
+.form-input{padding:9px 12px;border:1.5px solid var(--borde);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:13px;color:var(--texto);background:var(--blanco);}
+.form-input:focus{outline:none;border-color:var(--verde);}
+.form-select{padding:9px 12px;border:1.5px solid var(--borde);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:13px;color:var(--texto);background:var(--blanco);-webkit-appearance:none;}
+.btn-verde{width:100%;padding:12px;background:var(--verde);color:white;border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-tierra{width:100%;padding:12px;background:var(--tierra);color:white;border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;}
+.btn-dorado{width:100%;padding:12px;background:var(--dorado);color:var(--tierra-dark);border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;}
+/* LISTA MOVIMIENTOS */
+.mov-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--gris);}
+.mov-left{flex:1;}
+.mov-titulo{font-size:13px;font-weight:500;color:var(--texto);}
+.mov-sub{font-size:11px;color:var(--texto3);margin-top:2px;}
+.mov-right{display:flex;align-items:center;gap:6px;}
+.mov-monto{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;}
+.mov-monto.verde{color:var(--verde);}
+.mov-monto.rojo{color:var(--rojo);}
+.btn-ajustar{padding:3px 8px;border-radius:12px;border:1px solid var(--dorado);background:var(--dorado-light);font-size:10px;font-weight:600;color:var(--tierra-dark);cursor:pointer;}
+/* STOCK */
+.stock-card{background:var(--blanco);border:1px solid var(--borde);border-radius:var(--rs);padding:12px;margin-bottom:8px;}
+.stock-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.stock-nombre{font-size:13px;font-weight:600;}
+.stock-kg{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--verde);}
+.stock-bar{height:5px;background:var(--gris);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.stock-bar-fill{height:100%;border-radius:3px;}
+.stock-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;font-size:11px;color:var(--texto3);text-align:center;}
+.stock-meta strong{font-size:13px;color:var(--texto);display:block;}
+/* ALERTA */
+.alerta-critico{background:#FEE2E2;border:1px solid var(--rojo);border-radius:var(--rs);padding:8px 12px;margin-bottom:8px;font-size:12px;color:#991B1B;}
+.alerta-bajo{background:#FEF3C7;border:1px solid #F59E0B;border-radius:var(--rs);padding:8px 12px;margin-bottom:8px;font-size:12px;color:#92400E;}
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--verde-dark);color:white;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error{background:var(--rojo);}
+/* PEDIDO RAPIDO */
+.pedido-rapido-banner{background:linear-gradient(135deg,var(--verde-dark),var(--verde-mid));border-radius:var(--r);padding:16px;margin-bottom:12px;color:white;}
+.pedido-rapido-titulo{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+.pedido-rapido-sub{font-size:12px;opacity:.8;margin-bottom:12px;}
+.pedido-rapido-items{background:rgba(255,255,255,.15);border-radius:var(--rs);padding:10px;margin-bottom:12px;font-size:13px;line-height:1.8;}
+.pedido-rapido-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.btn-confirmar{padding:12px;background:var(--dorado);color:var(--tierra-dark);border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+.btn-rechazar{padding:12px;background:rgba(255,255,255,.2);color:white;border:1px solid rgba(255,255,255,.3);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;}
+/* PRECIOS */
+.precio-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gris);}
+.precio-label{font-size:14px;font-weight:500;}
+.precio-sub{font-size:11px;color:var(--texto3);}
+.precio-input-wrap{display:flex;align-items:center;gap:4px;}
+.precio-s{font-size:13px;color:var(--texto3);}
+.precio-input{width:80px;padding:7px 10px;border:1.5px solid var(--borde);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;text-align:center;background:var(--blanco);color:var(--texto);}
+@media(min-width:768px){
+  body{background:#E8E4DF;}
+  .login-wrap{background:rgba(27,67,50,.95);}
+  #app{max-width:520px;margin:0 auto;background:var(--crema);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.15);}
+  .topbar{border-radius:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">AVICEN</div>
+    <div class="login-sub">PANEL DE CAJA</div>
+    <input type="password" class="login-input" id="login-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')hacerLogin()">
+    <button class="login-btn" onclick="hacerLogin()">Entrar</button>
+    <div class="login-err" id="login-err">Clave incorrecta</div>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app" style="display:none">
+
+<div class="topbar">
+  <div>
+    <div class="topbar-logo">🐔 AVICEN</div>
+    <div class="topbar-sub">GESTIÓN DE CAJA</div>
+  </div>
+  <div class="topbar-btns">
+    <button class="topbar-btn" onclick="window.open('https://lefernando110-commits.github.io/Avicen/avicen_pedidos_v7.html','_blank')">🛒 Ventas</button>
+    <button class="topbar-btn" onclick="cambiarClave()">🔑</button>
+    <button class="topbar-btn" onclick="salir()">Salir</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="main-tabs">
+  <button class="main-tab active" id="tab-caja" onclick="switchTab('caja')">📊 Caja</button>
+  <button class="main-tab" id="tab-registrar" onclick="switchTab('registrar')">➕ Registrar</button>
+  <button class="main-tab" id="tab-stock" onclick="switchTab('stock')">📦 Stock</button>
+  <button class="main-tab" id="tab-precios" onclick="switchTab('precios')">💰 Precios</button>
+</div>
+
+<!-- TAB CAJA -->
+<div class="view active" id="view-caja">
+  <div id="pedido-rapido-wrap"></div>
+  <div class="periodo-row">
+    <button class="periodo-btn active" onclick="setPeriodo('hoy',this)">Hoy</button>
+    <button class="periodo-btn" onclick="setPeriodo('ayer',this)">Ayer</button>
+    <button class="periodo-btn" onclick="setPeriodo('semana',this)">Semana</button>
+    <button class="periodo-btn" onclick="setPeriodo('mes',this)">Mes</button>
+    <button class="periodo-btn" onclick="setPeriodo('anio',this)">Año</button>
+  </div>
+  <div class="stats-grid" id="stats-wrap"></div>
+
+  <!-- COMPARATIVO -->
+  <div class="form-section" id="comparativo-wrap" style="display:none">
+    <div class="form-title">📈 Comparativo vs período anterior</div>
+    <div id="comparativo-contenido"></div>
+  </div>
+
+  <!-- GRÁFICO VENTAS POR DÍA -->
+  <div class="form-section">
+    <div class="form-title">📊 Ventas por día de la semana</div>
+    <canvas id="grafico-dias" height="160"></canvas>
+  </div>
+
+  <!-- RANKING PRODUCTOS -->
+  <div class="form-section">
+    <div class="form-title">🏆 Productos más vendidos</div>
+    <div id="ranking-productos"></div>
+  </div>
+
+  <!-- MOVIMIENTOS -->
+  <div class="form-section">
+    <div class="form-title">Movimientos recientes</div>
+    <div id="movimientos-lista"></div>
+  </div>
+
+  <!-- EXCEL CONSOLIDADO -->
+  <div class="form-section" style="background:var(--dorado-light);border-color:var(--dorado)">
+    <div class="form-title" style="color:var(--tierra-dark)">📥 Exportar Excel consolidado</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn-dorado" onclick="exportarExcel('hoy')">Hoy</button>
+      <button class="btn-dorado" onclick="exportarExcel('semana')">Semana</button>
+      <button class="btn-dorado" onclick="exportarExcel('mes')">Mes</button>
+      <button class="btn-dorado" onclick="exportarExcel('anio')">Año completo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB REGISTRAR -->
+<div class="view" id="view-registrar">
+  <div class="form-section">
+    <div class="form-title">Registrar venta manual</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <input class="form-input" id="v-nombre" placeholder="Nombre">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input class="form-input" id="v-tel" placeholder="9XXXXXXXX" type="tel">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Pago</label>
+        <select class="form-select" id="v-pago">
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="yape">💜 Yape</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Entrega</label>
+        <select class="form-select" id="v-entrega">
+          <option value="recojo">🏪 Recojo</option>
+          <option value="delivery">🛵 Delivery</option>
+        </select>
+      </div>
+    </div>
+    <div id="items-venta-wrap">
+      <div class="form-title" style="margin-top:8px">Productos</div>
+      <div id="items-venta-lista"></div>
+      <button onclick="agregarItemVenta()" style="background:none;border:1px dashed var(--borde);width:100%;padding:8px;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:12px;color:var(--texto3);cursor:pointer;margin-bottom:8px;">+ Agregar producto</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Total real cobrado (S/)</label>
+        <input class="form-input" id="v-total" type="number" placeholder="0.00" step="0.10">
+      </div>
+    </div>
+    <button class="btn-verde" onclick="guardarVentaManual()">Registrar venta</button>
+  </div>
+
+  <div class="form-section">
+    <div class="form-title">Registrar gasto</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Descripción</label>
+        <input class="form-input" id="g-desc" placeholder="Ej: Transporte, limpieza...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Monto (S/)</label>
+        <input class="form-input" id="g-monto" type="number" placeholder="0.00">
+      </div>
+    </div>
+    <button class="btn-tierra" onclick="guardarGasto()">Registrar gasto</button>
+  </div>
+</div>
+
+<!-- TAB STOCK -->
+<div class="view" id="view-stock">
+  <div id="alertas-stock"></div>
+  <div class="form-section">
+    <div class="form-title">Registrar compra al proveedor</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Producto</label>
+        <select class="form-select" id="sc-prod">
+          <option value="entero">🐔 Pollo entero</option>
+          <option value="descargado-pierna">🍖 Pierna/Pecho</option>
+          <option value="alitas">🍗 Alitas</option>
+          <option value="pecho-sin-hueso">🥩 Pecho s/hueso</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Unidades</label>
+        <input class="form-input" id="sc-und" type="number" placeholder="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Kg totales</label>
+        <input class="form-input" id="sc-kg" type="number" placeholder="0.0" oninput="calcCostoKg()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Costo total (S/)</label>
+        <input class="form-input" id="sc-costo" type="number" placeholder="0.00" oninput="calcCostoKg()">
+      </div>
+    </div>
+    <div id="sc-ckg-info" style="display:none;background:var(--verde-light);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--verde-dark);margin-bottom:8px;"></div>
+    <button class="btn-verde" onclick="guardarCompra()">Registrar compra (descuenta de caja)</button>
+  </div>
+  <div id="stock-productos"></div>
+</div>
+
+<!-- TAB PRECIOS -->
+<div class="view" id="view-precios">
+  <div class="form-section">
+    <div class="form-title">Precios por kilogramo</div>
+    <div class="precio-row"><div><div class="precio-label">🐔 Pollo entero</div><div class="precio-sub">Con vísceras</div></div><div class="precio-input-wrap"><span class="precio-s">S/</span><input class="precio-input" id="pp-entero" type="number" step="0.10" min="0"></div></div>
+    <div class="precio-row"><div><div class="precio-label">🍖 Pierna / Pecho</div><div class="precio-sub">Descargado</div></div><div class="precio-input-wrap"><span class="precio-s">S/</span><input class="precio-input" id="pp-pierna" type="number" step="0.10" min="0"></div></div>
+    <div class="precio-row"><div><div class="precio-label">🍗 Alitas y muslos</div><div class="precio-sub">Corte premium</div></div><div class="precio-input-wrap"><span class="precio-s">S/</span><input class="precio-input" id="pp-alitas" type="number" step="0.10" min="0"></div></div>
+    <div class="precio-row"><div><div class="precio-label">🥩 Pecho sin hueso</div><div class="precio-sub">Corte premium</div></div><div class="precio-input-wrap"><span class="precio-s">S/</span><input class="precio-input" id="pp-pecho" type="number" step="0.10" min="0"></div></div>
+    <div class="precio-row"><div><div class="precio-label">🛵 Delivery</div><div class="precio-sub">2do pedido en adelante</div></div><div class="precio-input-wrap"><span class="precio-s">S/</span><input class="precio-input" id="pp-delivery" type="number" step="0.50" min="0"></div></div>
+    <button class="btn-verde" onclick="guardarPrecios()">Guardar precios</button>
+    <div id="precios-aviso" style="font-size:12px;color:var(--texto3);text-align:center;margin-top:8px;"></div>
+  </div>
+  <div class="form-section" style="border-color:var(--rojo);">
+    <div class="form-title" style="color:var(--rojo);">⚠️ Zona de peligro</div>
+    <div style="font-size:12px;color:var(--texto3);margin-bottom:12px;line-height:1.6;">Borra todas las ventas, gastos y stock registrados en este dispositivo. No se puede deshacer.</div>
+    <button onclick="reiniciarDatos()" style="width:100%;padding:12px;background:white;color:var(--rojo);border:2px solid var(--rojo);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">🗑️ Reiniciar todos los datos</button>
+  </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nueva clave (mín. 6 caracteres)</label>
+        <input type="password" class="form-input" id="nueva-clave" placeholder="Nueva clave">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Confirmar clave</label>
+        <input type="password" class="form-input" id="confirma-clave" placeholder="Confirmar">
+      </div>
+    </div>
+    <button class="btn-tierra" onclick="guardarNuevaClave()">🔑 Guardar nueva clave</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIGURACIÓN ──
+var CLAVE_KEY = 'avicen_admin_clave';
+var CLAVE_DEFAULT = 'avicen2024';
+var CAJA_KEY = 'avicen_caja_v3';
+var STOCK_KEY = 'avicen_stock_v3';
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxFpZ7qwcW5c71qnUI9gQUp2t99EKjSeFzsFZEiNNwq832l5w5Kfl029ASucofyzEie/exec';
+var TELEGRAM_TOKEN = '8667281211:AAF9oTEWeHJhKpDXFYFjpUj7uudKBbojxc0';
+var TELEGRAM_GRUPO_ID = '-1003363051717';
+
+function enviarASheets(datos){
+  try{
+    fetch(SHEETS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(datos)
+    }).catch(function(){});
+  }catch(e){}
+}
+var PRECIOS_KEY = 'avicen_precios';
+
+// ── ESTADO ──
+var registros = [];
+var stockData = {};
+var precios = {};
+var periodoActual = 'hoy';
+var itemsVentaCount = 1;
+
+var PRODUCTOS = [
+  {id:'entero', nombre:'Pollo entero', emoji:'🐔', minKg:10, maxKg:80, esEntero:true},
+  {id:'descargado-pierna', nombre:'Pierna/Pecho', emoji:'🍖', minKg:8, maxKg:50, esEntero:false},
+  {id:'alitas', nombre:'Alitas', emoji:'🍗', minKg:5, maxKg:30, esEntero:false},
+  {id:'pecho-sin-hueso', nombre:'Pecho s/hueso', emoji:'🥩', minKg:5, maxKg:30, esEntero:false}
+];
+
+var PRECIOS_BASE = {'entero':11.20,'descargado-pierna':12.20,'alitas':14.00,'pecho-sin-hueso':14.00,'delivery':1.00};
+
+// ── LOGIN ──
+function getClave(){try{return localStorage.getItem(CLAVE_KEY)||CLAVE_DEFAULT;}catch(e){return CLAVE_DEFAULT;}}
+
+function hacerLogin(){
+  var v = document.getElementById('login-pass').value;
+  var err = document.getElementById('login-err');
+  if(v === getClave()){
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    cargarDatos();
+  } else {
+    err.style.display = 'block';
+    document.getElementById('login-pass').value = '';
+    setTimeout(function(){err.style.display='none';}, 2000);
+  }
+}
+
+function salir(){
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+}
+
+// ── CARGA DE DATOS DESDE GOOGLE SHEETS ──
+function cargarDatos(){
+  // Mostrar loading
+  document.getElementById('stats-wrap').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--texto3);font-size:13px;">⏳ Cargando datos...</div>';
+
+  fetch(SHEETS_URL)
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.error){
+        cargarDatosLocales();
+        return;
+      }
+      // Cargar ventas y gastos
+      registros = [];
+      if(data.ventas) data.ventas.forEach(function(v){
+        registros.push({
+          id: v.id||Date.now(), tipo:'venta',
+          fecha: v.fecha, fechaStr: v.fechaStr,
+          cliente: v.cliente, tel: v.tel,
+          pago: v.pago, entrega: v.entrega,
+          items: v.items||[], total: parseFloat(v.total)||0,
+          montoReal: parseFloat(v.montoReal||v.total)||0
+        });
+      });
+      if(data.gastos) data.gastos.forEach(function(g){
+        registros.push({
+          id: g.id||Date.now(), tipo:'gasto',
+          fecha: g.fecha, fechaStr: g.fechaStr,
+          desc: g.desc, total: parseFloat(g.total)||0
+        });
+      });
+
+      // Cargar stock
+      if(data.stock && Object.keys(data.stock).length>0){
+        stockData = data.stock;
+      } else {
+        PRODUCTOS.forEach(function(p){
+          if(!stockData[p.id]) stockData[p.id]={kg:0,und:0,costoKg:0};
+        });
+      }
+
+      // Cargar precios
+      if(data.precios && Object.keys(data.precios).length>0){
+        precios = data.precios;
+      } else {
+        precios = JSON.parse(JSON.stringify(PRECIOS_BASE));
+      }
+
+      // También guardar en local como respaldo
+      try{
+        localStorage.setItem(CAJA_KEY, JSON.stringify(registros));
+        localStorage.setItem(STOCK_KEY, JSON.stringify(stockData));
+        localStorage.setItem(PRECIOS_KEY, JSON.stringify(precios));
+      }catch(e){}
+
+      renderPrecios();
+      renderCaja();
+      renderStock();
+
+      // Verificar si hay pedido en URL
+      var urlParams = new URLSearchParams(window.location.search);
+      var pedidoParam = urlParams.get('pedido');
+      if(pedidoParam) mostrarPedidoRapido(pedidoParam);
+    })
+    .catch(function(){
+      // Sin internet — usar datos locales
+      cargarDatosLocales();
+    });
+}
+
+function cargarDatosLocales(){
+  try{
+    var r = localStorage.getItem(CAJA_KEY);
+    if(r) registros = JSON.parse(r);
+    var s = localStorage.getItem(STOCK_KEY);
+    if(s) stockData = JSON.parse(s);
+    else { PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};}); }
+    var p = localStorage.getItem(PRECIOS_KEY);
+    precios = p ? JSON.parse(p) : JSON.parse(JSON.stringify(PRECIOS_BASE));
+  }catch(e){
+    registros=[];
+    PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};});
+    precios = JSON.parse(JSON.stringify(PRECIOS_BASE));
+  }
+  renderPrecios();
+  renderCaja();
+  renderStock();
+  var urlParams = new URLSearchParams(window.location.search);
+  var pedidoParam = urlParams.get('pedido');
+  if(pedidoParam) mostrarPedidoRapido(pedidoParam);
+}
+
+function guardarCaja(){try{localStorage.setItem(CAJA_KEY,JSON.stringify(registros));}catch(e){}}
+function guardarStock(){
+  try{localStorage.setItem(STOCK_KEY,JSON.stringify(stockData));}catch(e){}
+  // Sincronizar stock completo a Sheets
+  try{
+    var items = PRODUCTOS.map(function(p){
+      var s = stockData[p.id]||{kg:0,und:0,costoKg:0};
+      return {id:p.id, kg:s.kg, und:s.und, costoKg:s.costoKg};
+    });
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'stock',items:items})}).catch(function(){});
+  }catch(e){}
+  verificarStockCritico();
+}
+
+var _ultimaAlertaStock = {};
+function verificarStockCritico(){
+  var ahora = Date.now();
+  PRODUCTOS.forEach(function(p){
+    var s = stockData[p.id]||{kg:0};
+    var esCritico = s.kg<=0 || s.kg<=p.minKg/2;
+    var esBajo = s.kg<=p.minKg && s.kg>p.minKg/2;
+    // Solo alertar una vez cada 30 minutos por producto
+    var ultimaAlerta = _ultimaAlertaStock[p.id]||0;
+    if((esCritico||esBajo) && (ahora-ultimaAlerta)>1800000){
+      _ultimaAlertaStock[p.id] = ahora;
+      var nivel = esCritico ? '🔴 STOCK CRÍTICO' : '⚠️ Stock bajo';
+      var msg = nivel+' — AVICEN\n'+p.emoji+' '+p.nombre+': '+s.kg.toFixed(1)+' kg restantes\n'+(esCritico?'⚡ Necesita reposición urgente':'📦 Considerar reponer pronto');
+      try{
+        fetch('https://api.telegram.org/bot'+TELEGRAM_TOKEN+'/sendMessage?chat_id='+encodeURIComponent(TELEGRAM_GRUPO_ID)+'&text='+encodeURIComponent(msg)).catch(function(){});
+      }catch(e){}
+    }
+  });
+}
+
+// ── REGISTRO RÁPIDO DESDE ENLACE ──
+function mostrarPedidoRapido(b64){
+  try{
+    var json = decodeURIComponent(escape(atob(b64)));
+    var d = JSON.parse(json);
+
+    // Verificar si ya fue registrado usando fecha exacta del pedido
+    var yaRegistrados = [];
+    try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
+    var idPedido = d.fecha + '_' + d.n + '_' + d.total; // ID único: fecha + cliente + total
+    if(yaRegistrados.indexOf(idPedido)!==-1){
+      document.getElementById('pedido-rapido-wrap').innerHTML =
+        '<div style="background:#D1FAE5;border:1px solid var(--verde);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
+        '<div style="font-size:20px">✅</div>' +
+        '<div><div style="font-size:14px;font-weight:600;color:var(--verde-dark)">Pedido ya registrado</div>' +
+        '<div style="font-size:12px;color:var(--verde-dark);opacity:.8">'+d.n+' · S/ '+parseFloat(d.total).toFixed(2)+'</div></div></div>';
+      return;
+    }
+    var wrap = document.getElementById('pedido-rapido-wrap');
+    var itemsHtml = '';
+    if(d.items && d.items.length){
+      d.items.forEach(function(it){
+        var prod = PRODUCTOS.filter(function(p){return p.id===it.id;})[0];
+        if(prod) itemsHtml += prod.emoji+' '+prod.nombre+' — '+it.kg+'kg<br>';
+      });
+    }
+    if(d.combo) itemsHtml += '🎁 Combo: '+d.combo+'<br>';
+    itemsHtml += (d.e==='d'?'🛵 Delivery':'🏪 Recojo')+' | '+(d.p==='y'?'💜 Yape':'💵 Efectivo');
+    if(!d.combo) itemsHtml += '<br><strong>Total: S/ '+parseFloat(d.total).toFixed(2)+'</strong>';
+
+    // Si tiene combo, mostrar campo para ingresar precio
+    var campoCombo = d.combo
+      ? '<div style="margin:12px 0;background:rgba(255,255,255,.15);border-radius:var(--rs);padding:12px;">'
+        +'<div style="font-size:12px;color:white;margin-bottom:8px;font-weight:600;">💰 Precio acordado con el cliente:</div>'
+        +'<input type="number" id="combo-precio-input" placeholder="0.00" step="0.10" min="0.10"'
+        +' style="width:100%;padding:12px;border-radius:var(--rs);border:2px solid #C9A84C;font-size:20px;text-align:center;font-weight:700;background:white;color:#1B4332;">'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:6px;text-align:center;">Ingresa el monto antes de registrar</div>'
+        +'</div>'
+      : '';
+
+    wrap.innerHTML = '<div class="pedido-rapido-banner">'
+      +'<div class="pedido-rapido-titulo">📥 Pedido recibido</div>'
+      +'<div class="pedido-rapido-sub">'+d.n+' · '+d.t+'</div>'
+      +'<div class="pedido-rapido-items">'+itemsHtml+'</div>'
+      +campoCombo
+      +'<div class="pedido-rapido-btns">'
+      +'<button class="btn-confirmar" onclick="registrarPedidoRapido(\''+b64+'\')">✅ Registrar en caja</button>'
+      +'<button class="btn-rechazar" onclick="document.getElementById(\'pedido-rapido-wrap\').innerHTML=\'\'">✕ Ignorar</button>'
+      +'</div></div>';
+  }catch(e){}
+}
+
+function registrarPedidoRapido(b64){
+  try{
+    var json = decodeURIComponent(escape(atob(b64)));
+    var d = JSON.parse(json);
+    var ahora = new Date();
+
+    // Reconstruir nombres de productos
+    var itemsArr = [];
+    if(d.items) d.items.forEach(function(it){
+      var prod = PRODUCTOS.filter(function(p){return p.id===it.id;})[0];
+      if(prod && it.kg>0) itemsArr.push(prod.nombre+' '+it.kg+'kg');
+    });
+    if(d.combo) itemsArr.push('Combo: '+d.combo);
+
+    // Si hay combo, obtener precio ingresado
+    var totalFinal = parseFloat(d.total)||0;
+    if(d.combo){
+      var precioComboEl = document.getElementById('combo-precio-input');
+      var precioCombo = precioComboEl ? parseFloat(precioComboEl.value)||0 : 0;
+      if(precioCombo<=0){mostrarToast('Ingresa el precio del combo','error');return;}
+      totalFinal = totalFinal + precioCombo;
+    }
+
+    // Normalizar pago y entrega
+    var pago = d.p==='y'?'yape':(d.p==='e'?'efectivo':d.p);
+    var entrega = d.e==='d'?'delivery':(d.e==='r'?'recojo':d.e);
+
+    registros.push({
+      id: Date.now(), tipo: 'venta',
+      fecha: d.fecha || ahora.toISOString(),
+      fechaStr: ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+      cliente: d.n, tel: d.t, pago: pago, entrega: entrega,
+      items: itemsArr, total: totalFinal, montoReal: totalFinal
+    });
+
+    // Descontar stock
+    if(d.items) d.items.forEach(function(it){
+      if(it.id && stockData[it.id]){
+        stockData[it.id].kg = Math.max(0, Math.round((stockData[it.id].kg - parseFloat(it.kg))*10)/10);
+        if(it.id==='entero') stockData[it.id].und = Math.max(0, stockData[it.id].und - Math.round(parseFloat(it.kg)/1.5));
+      }
+    });
+    guardarCaja(); guardarStock();
+    // Confirmación automática al cliente
+    var telCliente = d.t ? d.t.replace(/\D/g,'') : '';
+    if(telCliente){
+      var ahEst = new Date();
+      ahEst.setMinutes(ahEst.getMinutes()+(d.e==='d'?35:15));
+      var horaEst = ahEst.getHours()+':'+String(ahEst.getMinutes()).padStart(2,'0');
+      var msgConfirm = '✅ *Hola '+d.n+'!*\n'
+        +'Tu pedido AVICEN fue confirmado 🐔\n'
+        +'━━━━━━━━━━━━━━━\n'
+        +(d.e==='d'?'🛵 Tu pedido llegará aprox. a las *'+horaEst+'*':'🏪 Tu pedido estará listo aprox. a las *'+horaEst+'*')+'\n'
+        +'━━━━━━━━━━━━━━━\n'
+        +'¡Gracias por tu preferencia! 🙏';
+      var waConfirm = 'https://wa.me/51'+telCliente+'?text='+encodeURIComponent(msgConfirm);
+      setTimeout(function(){window.open(waConfirm,'_blank');},1000);
+    }
+    // Marcar pedido como ya registrado usando fecha exacta
+    var yaRegistrados = [];
+    try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
+    var idPedido = d.fecha + '_' + d.n + '_' + d.total;
+    if(yaRegistrados.indexOf(idPedido)===-1) yaRegistrados.push(idPedido);
+    if(yaRegistrados.length>200) yaRegistrados = yaRegistrados.slice(-200);
+    try{localStorage.setItem('avicen_pedidos_registrados',JSON.stringify(yaRegistrados));}catch(e){}
+    enviarASheets({
+      tipo:'venta', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+      cliente:d.n, tel:d.t, pago:d.p, entrega:d.e,
+      productos:d.items?d.items.map(function(i){return i.nombre+' '+i.kg+'kg';}).join(' | '):'',
+      total:parseFloat(d.total), montoReal:parseFloat(d.total)
+    });
+    document.getElementById('pedido-rapido-wrap').innerHTML = '';
+    renderCaja(); renderStock();
+    mostrarToast('Pedido registrado en caja ✓','ok');
+    // Limpiar URL
+    window.history.replaceState({},'',window.location.pathname);
+  }catch(e){ mostrarToast('Error al registrar','error'); }
+}
+
+// ── TABS ──
+function switchTab(tab){
+  document.querySelectorAll('.main-tab').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('view-'+tab).classList.add('active');
+  if(tab==='caja') renderCaja();
+  if(tab==='stock') renderStock();
+  if(tab==='precios') renderPrecios();
+  if(tab==='registrar') renderItemsVenta();
+}
+
+// ── FILTRO PERIODO ──
+function setPeriodo(p, btn){
+  periodoActual = p;
+  document.querySelectorAll('.periodo-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderCaja();
+}
+
+function filtrarPeriodo(p){
+  var ahora = new Date();
+  return registros.filter(function(r){
+    var f = new Date(r.fecha);
+    if(p==='hoy') return f.toDateString()===ahora.toDateString();
+    if(p==='ayer'){var ay=new Date(ahora);ay.setDate(ahora.getDate()-1);return f.toDateString()===ay.toDateString();}
+    if(p==='semana') return (ahora-f)/(1000*60*60*24)<=7;
+    if(p==='anio') return f.getFullYear()===ahora.getFullYear();
+    return f.getMonth()===ahora.getMonth()&&f.getFullYear()===ahora.getFullYear();
+  });
+}
+
+function filtrarPeriodoAnterior(p){
+  var ahora = new Date();
+  return registros.filter(function(r){
+    var f = new Date(r.fecha);
+    if(p==='hoy'){var ay=new Date(ahora);ay.setDate(ahora.getDate()-1);return f.toDateString()===ay.toDateString();}
+    if(p==='semana') return (ahora-f)/(1000*60*60*24)>7&&(ahora-f)/(1000*60*60*24)<=14;
+    if(p==='mes'){var pm=new Date(ahora.getFullYear(),ahora.getMonth()-1,1);var fim=new Date(ahora.getFullYear(),ahora.getMonth(),0);return f>=pm&&f<=fim;}
+    return false;
+  });
+}
+
+// ── RENDER CAJA ──
+function renderCaja(){
+  var regs = filtrarPeriodo(periodoActual);
+  var ventas = regs.filter(function(r){return r.tipo==='venta';});
+  var gastos = regs.filter(function(r){return r.tipo==='gasto';});
+  var totalV = ventas.reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+  var totalG = gastos.reduce(function(s,r){return s+r.total;},0);
+  var flujo = totalV - totalG;
+  var yape = ventas.filter(function(r){return r.pago==='yape';}).reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+  var efectivo = ventas.filter(function(r){return r.pago!=='yape';}).reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+
+  document.getElementById('stats-wrap').innerHTML =
+    '<div class="stat-card full"><div class="stat-val">S/ '+totalV.toFixed(2)+'</div><div class="stat-label">Ingresos · '+ventas.length+' ventas</div></div>'+
+    '<div class="stat-card"><div class="stat-val azul">S/ '+yape.toFixed(2)+'</div><div class="stat-label">💜 Yape</div></div>'+
+    '<div class="stat-card"><div class="stat-val">S/ '+efectivo.toFixed(2)+'</div><div class="stat-label">💵 Efectivo</div></div>'+
+    '<div class="stat-card rojo"><div class="stat-val rojo">-S/ '+totalG.toFixed(2)+'</div><div class="stat-label">💸 Gastos</div></div>'+
+    '<div class="stat-card full" style="border-left-color:'+(flujo>=0?'var(--verde)':'var(--rojo)')+'"><div class="stat-val" style="color:'+(flujo>=0?'var(--verde)':'var(--rojo)')+'">S/ '+flujo.toFixed(2)+'</div><div class="stat-label">📊 Flujo neto</div></div>';
+
+  renderComparativo(totalV, ventas.length);
+  renderGraficoDias(regs);
+  renderRanking(ventas);
+
+  var lista = document.getElementById('movimientos-lista');
+  if(!regs.length){lista.innerHTML='<div style="text-align:center;color:var(--texto3);font-size:13px;padding:12px">Sin registros en este período</div>';return;}
+  var html = '';
+  regs.slice().reverse().slice(0,20).forEach(function(r){
+    var esV = r.tipo==='venta';
+    var monto = r.montoReal!==undefined?r.montoReal:r.total;
+    var ajustado = r.montoReal!==undefined && r.montoReal!==r.total;
+    html += '<div class="mov-item">';
+    html += '<div class="mov-left"><div class="mov-titulo">'+(esV?'🛒 '+(r.cliente||'Cliente'):'💸 '+r.desc)+'</div>';
+    html += '<div class="mov-sub">'+r.fechaStr+(esV?' · '+(r.pago==='yape'?'Yape':'Efectivo')+(r.entrega==='delivery'?' · Delivery':''):'')+'</div></div>';
+    html += '<div class="mov-right">';
+    html += '<div class="mov-monto '+(esV?'verde':'rojo')+'">'+(esV?'+':'-')+'S/ '+monto.toFixed(2)+(ajustado?' ✓':'')+'</div>';
+    if(esV) html += '<button class="btn-ajustar" onclick="ajustarVenta('+r.id+')">✏️</button>';
+    html += '</div></div>';
+  });
+  lista.innerHTML = html;
+}
+
+// ── COMPARATIVO ──
+function renderComparativo(totalActual, countActual){
+  var wrap = document.getElementById('comparativo-wrap');
+  var cont = document.getElementById('comparativo-contenido');
+  if(periodoActual==='ayer'||periodoActual==='anio'){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  var regsAnt = filtrarPeriodoAnterior(periodoActual);
+  var ventasAnt = regsAnt.filter(function(r){return r.tipo==='venta';});
+  var totalAnt = ventasAnt.reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+  var diff = totalActual - totalAnt;
+  var pct = totalAnt>0 ? Math.round((diff/totalAnt)*100) : 0;
+  var color = diff>=0?'var(--verde)':'var(--rojo)';
+  var flecha = diff>=0?'▲':'▼';
+  var labels = {hoy:'ayer',semana:'semana pasada',mes:'mes pasado'};
+  cont.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+    '<div><div style="font-size:11px;color:var(--texto3)">Período anterior</div>'+
+    '<div style="font-family:\'Playfair Display\',serif;font-size:18px;font-weight:700">S/ '+totalAnt.toFixed(2)+'</div>'+
+    '<div style="font-size:11px;color:var(--texto3)">'+ventasAnt.length+' ventas</div></div>'+
+    '<div><div style="font-size:11px;color:var(--texto3)">Variación vs '+labels[periodoActual]+'</div>'+
+    '<div style="font-family:\'Playfair Display\',serif;font-size:22px;font-weight:700;color:'+color+'">'+flecha+' '+Math.abs(pct)+'%</div>'+
+    '<div style="font-size:11px;color:'+color+'">'+(diff>=0?'+':'')+'S/ '+diff.toFixed(2)+'</div></div></div>';
+}
+
+// ── GRÁFICO DÍAS ──
+function renderGraficoDias(regs){
+  var dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var totales = [0,0,0,0,0,0,0];
+  regs.filter(function(r){return r.tipo==='venta';}).forEach(function(r){
+    var d = new Date(r.fecha).getDay();
+    totales[d] += r.montoReal!==undefined?r.montoReal:r.total;
+  });
+  var canvas = document.getElementById('grafico-dias');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.offsetWidth - 32;
+  canvas.height = 160;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  var max = Math.max.apply(null,totales)||1;
+  var barW = Math.floor((canvas.width-40)/7)-4;
+  var baseY = canvas.height - 28;
+  var maxBarH = baseY - 14;
+  var hoy = new Date().getDay();
+  totales.forEach(function(val,i){
+    var x = 20 + i*(barW+4);
+    var h = Math.max(2,Math.round((val/max)*maxBarH));
+    ctx.fillStyle = i===hoy?'#2D6A4F':'#A8D8B0';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x, baseY-h, barW, h, 3);
+    else ctx.rect(x, baseY-h, barW, h);
+    ctx.fill();
+    ctx.fillStyle='#8A7060'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(dias[i], x+barW/2, canvas.height-8);
+    if(val>0){
+      ctx.fillStyle='#1B4332'; ctx.font='bold 9px sans-serif';
+      ctx.fillText('S/'+Math.round(val), x+barW/2, baseY-h-4);
+    }
+  });
+}
+
+// ── RANKING PRODUCTOS ──
+function renderRanking(ventas){
+  var conteo = {}; var montosProd = {};
+  PRODUCTOS.forEach(function(p){conteo[p.id]=0;montosProd[p.id]=0;});
+  ventas.forEach(function(v){
+    if(v.items) v.items.forEach(function(item){
+      PRODUCTOS.forEach(function(p){
+        if(item.indexOf(p.nombre)!==-1){
+          conteo[p.id]++;
+          var km=item.match(/(\d+\.?\d*)\s*kg/);
+          if(km) montosProd[p.id]+=parseFloat(km[1])*(precios[p.id]||0);
+        }
+      });
+    });
+  });
+  var sorted = PRODUCTOS.slice().sort(function(a,b){return montosProd[b.id]-montosProd[a.id];});
+  var maxM = Math.max.apply(null,sorted.map(function(p){return montosProd[p.id];})) || 1;
+  var medallas = ['🥇','🥈','🥉','4️⃣'];
+  var html = '';
+  sorted.forEach(function(p,i){
+    var pct = Math.round((montosProd[p.id]/maxM)*100);
+    html += '<div style="margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">';
+    html += '<div style="font-size:13px;font-weight:500">'+medallas[i]+' '+p.emoji+' '+p.nombre+'</div>';
+    html += '<div style="font-size:12px;color:var(--verde);font-weight:600">'+conteo[p.id]+' ped · S/ '+montosProd[p.id].toFixed(0)+'</div></div>';
+    html += '<div style="height:6px;background:var(--gris);border-radius:3px;overflow:hidden">';
+    html += '<div style="height:100%;width:'+pct+'%;background:var(--verde);border-radius:3px;"></div></div></div>';
+  });
+  document.getElementById('ranking-productos').innerHTML = html || '<div style="text-align:center;color:var(--texto3);font-size:13px;padding:8px">Sin datos aún</div>';
+}
+
+function ajustarVenta(id){
+  var r = registros.filter(function(x){return x.id===id;})[0];
+  if(!r) return;
+  var nuevo = prompt('Monto real cobrado a '+(r.cliente||'cliente')+':\n(Registrado: S/ '+r.total.toFixed(2)+')',r.montoReal!==undefined?r.montoReal.toFixed(2):r.total.toFixed(2));
+  if(nuevo===null) return;
+  var m = parseFloat(nuevo);
+  if(isNaN(m)||m<=0){mostrarToast('Monto inválido','error');return;}
+  r.montoReal = m;
+  guardarCaja(); renderCaja();
+  mostrarToast('Ajustado a S/ '+m.toFixed(2),'ok');
+}
+
+// ── REGISTRAR VENTA MANUAL ──
+function renderItemsVenta(){
+  var lista = document.getElementById('items-venta-lista');
+  var html = '';
+  for(var i=1; i<=itemsVentaCount; i++){
+    html += '<div class="form-row" style="margin-bottom:6px" id="item-row-'+i+'">';
+    html += '<div class="form-group" style="flex:2"><select class="form-select" id="item-prod-'+i+'">';
+    PRODUCTOS.forEach(function(p){html+='<option value="'+p.id+'">'+p.emoji+' '+p.nombre+'</option>';});
+    html += '</select></div>';
+    html += '<div class="form-group"><input class="form-input" id="item-kg-'+i+'" type="number" placeholder="kg" step="0.1"></div>';
+    if(i>1) html += '<button onclick="quitarItemVenta('+i+')" style="padding:0 8px;background:none;border:1px solid var(--borde);border-radius:var(--rs);color:var(--texto3);cursor:pointer;font-size:16px;">×</button>';
+    html += '</div>';
+  }
+  lista.innerHTML = html;
+}
+
+function agregarItemVenta(){
+  itemsVentaCount++;
+  renderItemsVenta();
+}
+
+function quitarItemVenta(i){
+  document.getElementById('item-row-'+i).remove();
+}
+
+function guardarVentaManual(){
+  var nombre = document.getElementById('v-nombre').value.trim();
+  var tel = document.getElementById('v-tel').value.trim();
+  var pago = document.getElementById('v-pago').value;
+  var entrega = document.getElementById('v-entrega').value;
+  var total = parseFloat(document.getElementById('v-total').value)||0;
+  if(!nombre){mostrarToast('Ingresa nombre del cliente','error');return;}
+  if(total<=0){mostrarToast('Ingresa el monto cobrado','error');return;}
+
+  var itemsArr = [];
+  for(var i=1;i<=itemsVentaCount;i++){
+    var el = document.getElementById('item-prod-'+i);
+    var kgEl = document.getElementById('item-kg-'+i);
+    if(!el||!kgEl) continue;
+    var kg = parseFloat(kgEl.value)||0;
+    if(kg>0){
+      var prod = PRODUCTOS.filter(function(p){return p.id===el.value;})[0];
+      itemsArr.push(prod.nombre+' '+kg+'kg');
+      // Descontar stock
+      if(stockData[el.value]){
+        stockData[el.value].kg = Math.max(0, Math.round((stockData[el.value].kg - kg)*10)/10);
+        if(el.value==='entero') stockData[el.value].und = Math.max(0, stockData[el.value].und - Math.round(kg/1.5));
+      }
+    }
+  }
+
+  var ahora = new Date();
+  registros.push({
+    id:Date.now(), tipo:'venta',
+    fecha:ahora.toISOString(),
+    fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+    cliente:nombre, tel:tel, pago:pago, entrega:entrega,
+    items:itemsArr, total:total, montoReal:total
+  });
+  guardarCaja(); guardarStock();
+  enviarASheets({
+    tipo:'venta', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+    cliente:nombre, tel:tel, pago:pago, entrega:entrega,
+    productos:itemsArr.join(' | '), total:total, montoReal:total
+  });
+  // Limpiar form
+  ['v-nombre','v-tel','v-total'].forEach(function(id){document.getElementById(id).value='';});
+  itemsVentaCount = 1; renderItemsVenta();
+  mostrarToast('Venta registrada ✓','ok');
+  renderCaja(); renderStock();
+}
+
+// ── REGISTRAR GASTO ──
+function guardarGasto(){
+  var desc = document.getElementById('g-desc').value.trim();
+  var monto = parseFloat(document.getElementById('g-monto').value)||0;
+  if(!desc||monto<=0){mostrarToast('Completa descripción y monto','error');return;}
+  var ahora = new Date();
+  registros.push({
+    id:Date.now(), tipo:'gasto',
+    fecha:ahora.toISOString(),
+    fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+    desc:desc, total:monto
+  });
+  guardarCaja();
+  enviarASheets({tipo:'gasto', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}), desc:desc, total:monto});
+  document.getElementById('g-desc').value='';
+  document.getElementById('g-monto').value='';
+  mostrarToast('Gasto registrado ✓','ok');
+  renderCaja();
+}
+
+// ── STOCK ──
+function calcCostoKg(){
+  var kg = parseFloat(document.getElementById('sc-kg').value)||0;
+  var costo = parseFloat(document.getElementById('sc-costo').value)||0;
+  var el = document.getElementById('sc-ckg-info');
+  if(kg>0&&costo>0){el.style.display='block';el.textContent='Costo por kg: S/ '+(costo/kg).toFixed(2);}
+  else el.style.display='none';
+}
+
+function guardarCompra(){
+  var prod = document.getElementById('sc-prod').value;
+  var und = parseInt(document.getElementById('sc-und').value)||0;
+  var kg = parseFloat(document.getElementById('sc-kg').value)||0;
+  var costo = parseFloat(document.getElementById('sc-costo').value)||0;
+  if(kg<=0||costo<=0){mostrarToast('Ingresa kg y costo','error');return;}
+
+  var s = stockData[prod]||(stockData[prod]={kg:0,und:0,costoKg:0});
+  var costoKg = costo/kg;
+  var totalKgNuevo = s.kg + kg;
+  s.costoKg = totalKgNuevo>0 ? ((s.kg*s.costoKg)+(kg*costoKg))/totalKgNuevo : costoKg;
+  s.kg = Math.round((s.kg+kg)*10)/10;
+  s.und += und;
+
+  var pNombre = PRODUCTOS.filter(function(p){return p.id===prod;})[0].nombre;
+  var ahora = new Date();
+  registros.push({
+    id:Date.now(), tipo:'gasto',
+    fecha:ahora.toISOString(),
+    fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+    desc:'Compra: '+pNombre+' '+kg+'kg', total:costo
+  });
+
+  guardarCaja(); guardarStock();
+  enviarASheets({tipo:'gasto', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}), desc:'Compra: '+pNombre+' '+kg+'kg', total:costo});
+  ['sc-und','sc-kg','sc-costo'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('sc-ckg-info').style.display='none';
+  mostrarToast('Compra registrada — '+kg+'kg de '+pNombre+' ✓','ok');
+  renderStock(); renderCaja();
+}
+
+function renderStock(){
+  var alertasEl = document.getElementById('alertas-stock');
+  var prodsEl = document.getElementById('stock-productos');
+  var alertHtml = '';
+  var prodsHtml = '';
+
+  PRODUCTOS.forEach(function(p){
+    var s = stockData[p.id]||{kg:0,und:0,costoKg:0};
+    if(s.kg<=0||s.kg<=p.minKg/2) alertHtml+='<div class="alerta-critico">🔴 <strong>'+p.nombre+'</strong> — Stock crítico: '+s.kg.toFixed(1)+' kg</div>';
+    else if(s.kg<=p.minKg) alertHtml+='<div class="alerta-bajo">⚠️ <strong>'+p.nombre+'</strong> — Stock bajo: '+s.kg.toFixed(1)+' kg</div>';
+  });
+  alertasEl.innerHTML = alertHtml;
+
+  PRODUCTOS.forEach(function(p){
+    var s = stockData[p.id]||{kg:0,und:0,costoKg:0};
+    var pct = Math.min(100,Math.round((s.kg/p.maxKg)*100));
+    var est = s.kg<=0||s.kg<=p.minKg/2?'critico':s.kg<=p.minKg?'alerta':'ok';
+    var barColor = est==='ok'?'var(--verde)':est==='alerta'?'#F59E0B':'var(--rojo)';
+    var margen = precios[p.id] ? precios[p.id]-s.costoKg : 0;
+    prodsHtml += '<div class="stock-card" style="'+(est!=='ok'?'border-left:3px solid '+(est==='alerta'?'#F59E0B':'var(--rojo)')+';':'')+'">';
+    prodsHtml += '<div class="stock-header"><div class="stock-nombre">'+p.emoji+' '+p.nombre+'</div><div class="stock-kg">'+s.kg.toFixed(1)+' kg</div></div>';
+    prodsHtml += '<div class="stock-bar"><div class="stock-bar-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>';
+    prodsHtml += '<div class="stock-meta">';
+    prodsHtml += '<div><strong>'+(p.esEntero?s.und+' und':pct+'%')+'</strong>'+(p.esEntero?'unidades':'del máx.')+'</div>';
+    prodsHtml += '<div><strong>'+(s.costoKg>0?'S/ '+s.costoKg.toFixed(2):'—')+'</strong>costo/kg</div>';
+    prodsHtml += '<div><strong style="color:'+(margen>=0&&s.costoKg>0?'var(--verde)':'var(--rojo)')+'">'+( s.costoKg>0?(margen>=0?'+':'')+' S/ '+margen.toFixed(2):'—')+'</strong>margen/kg</div>';
+    prodsHtml += '</div></div>';
+  });
+  prodsEl.innerHTML = prodsHtml || '<div style="text-align:center;color:var(--texto3);font-size:13px;padding:16px">Sin datos de stock aún</div>';
+}
+
+// ── PRECIOS ──
+function renderPrecios(){
+  var p = precios;
+  document.getElementById('pp-entero').value = (p['entero']||PRECIOS_BASE['entero']).toFixed(2);
+  document.getElementById('pp-pierna').value = (p['descargado-pierna']||PRECIOS_BASE['descargado-pierna']).toFixed(2);
+  document.getElementById('pp-alitas').value = (p['alitas']||PRECIOS_BASE['alitas']).toFixed(2);
+  document.getElementById('pp-pecho').value = (p['pecho-sin-hueso']||PRECIOS_BASE['pecho-sin-hueso']).toFixed(2);
+  document.getElementById('pp-delivery').value = (p['delivery']||PRECIOS_BASE['delivery']).toFixed(2);
+  var fechaStr='';try{fechaStr=localStorage.getItem('avicen_precios_fecha')||'';}catch(e){}
+  if(fechaStr){var f=new Date(fechaStr);document.getElementById('precios-aviso').textContent='Última actualización: '+f.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'});}
+}
+
+function guardarPrecios(){
+  precios['entero'] = parseFloat(document.getElementById('pp-entero').value)||PRECIOS_BASE['entero'];
+  precios['descargado-pierna'] = parseFloat(document.getElementById('pp-pierna').value)||PRECIOS_BASE['descargado-pierna'];
+  precios['alitas'] = parseFloat(document.getElementById('pp-alitas').value)||PRECIOS_BASE['alitas'];
+  precios['pecho-sin-hueso'] = parseFloat(document.getElementById('pp-pecho').value)||PRECIOS_BASE['pecho-sin-hueso'];
+  precios['delivery'] = parseFloat(document.getElementById('pp-delivery').value)||PRECIOS_BASE['delivery'];
+  try{
+    localStorage.setItem(PRECIOS_KEY, JSON.stringify(precios));
+    localStorage.setItem('avicen_precios_fecha', new Date().toISOString());
+    // Sincronizar precios a Sheets
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'precios',precios:precios})}).catch(function(){});
+  }catch(e){}
+  mostrarToast('Precios guardados ✓','ok');
+  renderPrecios();
+}
+
+// ── EXPORTAR EXCEL CONSOLIDADO ──
+function exportarExcel(p){
+  var periodo = p || periodoActual;
+  var regs = filtrarPeriodo(periodo);
+  var ventas = regs.filter(function(r){return r.tipo==='venta';});
+  var gastos = regs.filter(function(r){return r.tipo==='gasto';});
+  var periodos = {hoy:'Hoy',ayer:'Ayer',semana:'Semana',mes:'Mes',anio:'Año'};
+  var tv = ventas.reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+  var tg = gastos.reduce(function(s,r){return s+r.total;},0);
+  var yape = ventas.filter(function(r){return r.pago==='yape';}).reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+
+  var conteo={}; var montosProd={};
+  PRODUCTOS.forEach(function(p){conteo[p.id]=0;montosProd[p.id]=0;});
+  ventas.forEach(function(v){
+    if(v.items) v.items.forEach(function(item){
+      PRODUCTOS.forEach(function(p){
+        if(item.indexOf(p.nombre)!==-1){conteo[p.id]++;var km=item.match(/(\d+\.?\d*)\s*kg/);if(km)montosProd[p.id]+=parseFloat(km[1])*(precios[p.id]||0);}
+      });
+    });
+  });
+
+  var csv = '\uFEFF';
+  csv += 'REPORTE AVICEN — '+periodos[periodo]+'\n';
+  csv += 'Generado:,'+new Date().toLocaleString('es-PE')+'\n\n';
+  csv += 'RESUMEN\n';
+  csv += 'Ingresos totales,S/ '+tv.toFixed(2)+'\n';
+  csv += 'Yape,S/ '+yape.toFixed(2)+'\n';
+  csv += 'Efectivo,S/ '+(tv-yape).toFixed(2)+'\n';
+  csv += 'Gastos totales,S/ '+tg.toFixed(2)+'\n';
+  csv += 'Flujo neto,S/ '+(tv-tg).toFixed(2)+'\n';
+  csv += 'Total ventas,'+ventas.length+'\n\n';
+  csv += 'RANKING DE PRODUCTOS\nProducto,Pedidos,Monto estimado\n';
+  PRODUCTOS.slice().sort(function(a,b){return montosProd[b.id]-montosProd[a.id];}).forEach(function(p){
+    csv+='"'+p.nombre+'",'+conteo[p.id]+',S/ '+montosProd[p.id].toFixed(2)+'\n';
+  });
+  csv += '\nDETALLE DE VENTAS\nFecha,Cliente,Tel,Pago,Entrega,Productos,Total Est.,Total Real\n';
+  ventas.forEach(function(v){
+    csv+='"'+v.fechaStr+'","'+(v.cliente||'')+'","'+(v.tel||'')+'","'+(v.pago||'')+'","'+(v.entrega||'')+'","'+(v.items?v.items.join(' | '):'')+'",'+v.total.toFixed(2)+','+(v.montoReal!==undefined?v.montoReal.toFixed(2):v.total.toFixed(2))+'\n';
+  });
+  csv += ',,,,,TOTAL:,,'+tv.toFixed(2)+'\n\nDETALLE DE GASTOS\nFecha,Descripcion,Monto\n';
+  gastos.forEach(function(g){csv+='"'+g.fechaStr+'","'+g.desc+'",'+g.total.toFixed(2)+'\n';});
+  csv += ',,TOTAL GASTOS:,'+tg.toFixed(2)+'\n\nFLUJO NETO:,S/ '+(tv-tg).toFixed(2)+'\n';
+
+  // Método compatible con Android
+  var nombreArchivo = 'AVICEN_'+periodos[periodo]+'_'+new Date().toLocaleDateString('es-PE').replace(/\//g,'-')+'.csv';
+  try{
+    // Intentar descarga normal primero
+    var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href=url; a.download=nombreArchivo;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    // Fallback: abrir en nueva pestaña para guardar manualmente
+    var dataUri = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    window.open(dataUri,'_blank');
+  }
+  mostrarToast('Excel '+periodos[periodo]+' listo ✓','ok');
+}
+
+function reiniciarDatos(){
+  if(!confirm('¿Seguro que quieres borrar TODOS los datos?\n\nEsto eliminará todas las ventas, gastos y stock de este dispositivo y Google Sheets.\n\nEsta acción NO se puede deshacer.')) return;
+  try{
+    localStorage.removeItem(CAJA_KEY);
+    localStorage.removeItem(STOCK_KEY);
+    localStorage.removeItem('avicen_pedidos_registrados');
+    registros = [];
+    PRODUCTOS.forEach(function(p){stockData[p.id]={kg:0,und:0,costoKg:0};});
+    // Borrar en Sheets también
+    fetch(SHEETS_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({tipo:'borrar_todo'})}).catch(function(){});
+  }catch(e){}
+  renderCaja(); renderStock();
+  mostrarToast('Datos reiniciados ✓','ok');
+}
+
+// ── CAMBIAR CLAVE ──
+function cambiarClave(){
+  switchTab('precios');
+  setTimeout(function(){document.getElementById('nueva-clave').focus();},300);
+}
+
+function guardarNuevaClave(){
+  var nueva = document.getElementById('nueva-clave').value;
+  var confirma = document.getElementById('confirma-clave').value;
+  if(!nueva||nueva.length<6){mostrarToast('Mínimo 6 caracteres','error');return;}
+  if(nueva!==confirma){mostrarToast('Las claves no coinciden','error');return;}
+  try{localStorage.setItem(CLAVE_KEY, nueva);}catch(e){}
+  document.getElementById('nueva-clave').value='';
+  document.getElementById('confirma-clave').value='';
+  mostrarToast('¡Clave actualizada! ✓','ok');
+}
+
+// ── TOAST ──
+function mostrarToast(msg,tipo){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(tipo||'ok')+' show';
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+// ── ENTER en login ──
+document.getElementById('login-pass').addEventListener('keydown',function(e){
+  if(e.key==='Enter') hacerLogin();
+});
+</script>
+</body>
+</html>
