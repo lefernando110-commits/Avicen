@@ -404,6 +404,19 @@ function mostrarPedidoRapido(b64){
   try{
     var json = decodeURIComponent(escape(atob(b64)));
     var d = JSON.parse(json);
+
+    // Verificar si ya fue registrado
+    var yaRegistrados = [];
+    try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
+    var idPedido = b64.substring(0,20); // usar primeros 20 chars como ID único
+    if(yaRegistrados.indexOf(idPedido)!==-1){
+      document.getElementById('pedido-rapido-wrap').innerHTML =
+        '<div style="background:#D1FAE5;border:1px solid var(--verde);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">' +
+        '<div style="font-size:20px">✅</div>' +
+        '<div><div style="font-size:14px;font-weight:600;color:var(--verde-dark)">Pedido ya registrado</div>' +
+        '<div style="font-size:12px;color:var(--verde-dark);opacity:.8">'+d.n+' · S/ '+parseFloat(d.total).toFixed(2)+'</div></div></div>';
+      return;
+    }
     var wrap = document.getElementById('pedido-rapido-wrap');
     var itemsHtml = '';
     if(d.items && d.items.length){
@@ -443,6 +456,13 @@ function registrarPedidoRapido(b64){
       }
     });
     guardarCaja(); guardarStock();
+    // Marcar pedido como ya registrado
+    var yaRegistrados = [];
+    try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}
+    var idPedido = b64.substring(0,20);
+    if(yaRegistrados.indexOf(idPedido)===-1) yaRegistrados.push(idPedido);
+    if(yaRegistrados.length>200) yaRegistrados = yaRegistrados.slice(-200);
+    try{localStorage.setItem('avicen_pedidos_registrados',JSON.stringify(yaRegistrados));}catch(e){}
     enviarASheets({
       tipo:'venta', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
       cliente:d.n, tel:d.t, pago:d.p, entrega:d.e,
