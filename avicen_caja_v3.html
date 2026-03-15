@@ -97,7 +97,12 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
 .precio-input-wrap{display:flex;align-items:center;gap:4px;}
 .precio-s{font-size:13px;color:var(--texto3);}
 .precio-input{width:80px;padding:7px 10px;border:1.5px solid var(--borde);border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;text-align:center;background:var(--blanco);color:var(--texto);}
-.precio-input:focus{outline:none;border-color:var(--verde);}
+@media(min-width:768px){
+  body{background:#E8E4DF;}
+  .login-wrap{background:rgba(27,67,50,.95);}
+  #app{max-width:520px;margin:0 auto;background:var(--crema);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.15);}
+  .topbar{border-radius:0;}
+}
 </style>
 </head>
 <body>
