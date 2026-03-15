@@ -138,6 +138,8 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
   <button class="main-tab active" id="tab-caja" onclick="switchTab('caja')">📊 Caja</button>
   <button class="main-tab" id="tab-registrar" onclick="switchTab('registrar')">➕ Registrar</button>
   <button class="main-tab" id="tab-stock" onclick="switchTab('stock')">📦 Stock</button>
+  <button class="main-tab" id="tab-clientes" onclick="switchTab('clientes')">👥 Clientes</button>
+  <button class="main-tab" id="tab-exportar" onclick="switchTab('exportar')">📋 Exportar</button>
   <button class="main-tab" id="tab-precios" onclick="switchTab('precios')">💰 Precios</button>
 </div>
 
@@ -177,15 +179,11 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
     <div id="movimientos-lista"></div>
   </div>
 
-  <!-- EXCEL CONSOLIDADO -->
-  <div class="form-section" style="background:var(--dorado-light);border-color:var(--dorado)">
-    <div class="form-title" style="color:var(--tierra-dark)">📥 Exportar Excel consolidado</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <button class="btn-dorado" onclick="exportarExcel('hoy')">Hoy</button>
-      <button class="btn-dorado" onclick="exportarExcel('semana')">Semana</button>
-      <button class="btn-dorado" onclick="exportarExcel('mes')">Mes</button>
-      <button class="btn-dorado" onclick="exportarExcel('anio')">Año completo</button>
-    </div>
+  <!-- GRÁFICO TORTA INGRESOS VS EGRESOS -->
+  <div class="form-section">
+    <div class="form-title">🥧 Ingresos vs Egresos</div>
+    <canvas id="grafico-torta" height="200"></canvas>
+    <div id="torta-leyenda" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;"></div>
   </div>
 </div>
 
@@ -254,38 +252,65 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
   <div id="alertas-stock"></div>
   <div class="form-section">
     <div class="form-title">Registrar compra al proveedor</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Producto</label>
-        <select class="form-select" id="sc-prod">
-          <option value="entero">🐔 Pollo entero</option>
-          <option value="descargado-pierna">🍖 Pierna/Pecho</option>
-          <option value="alitas">🍗 Alitas</option>
-          <option value="pecho-sin-hueso">🥩 Pecho s/hueso</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Unidades</label>
-        <input class="form-input" id="sc-und" type="number" placeholder="0">
-      </div>
+    <div style="background:var(--verde-light);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--verde-dark);margin-bottom:10px;">
+      🐔 Compra pollos enteros → el sistema calcula automáticamente los cortes al trozar
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Kg totales</label>
-        <input class="form-input" id="sc-kg" type="number" placeholder="0.0" oninput="calcCostoKg()">
+        <label class="form-label">Unidades de pollo entero</label>
+        <input class="form-input" id="sc-und" type="number" placeholder="Ej: 10" oninput="calcTrozado()">
       </div>
+      <div class="form-group">
+        <label class="form-label">Peso promedio por pollo (kg)</label>
+        <input class="form-input" id="sc-peso" type="number" placeholder="Ej: 2.5" step="0.1" oninput="calcTrozado()">
+      </div>
+    </div>
+    <div class="form-row">
       <div class="form-group">
         <label class="form-label">Costo total (S/)</label>
-        <input class="form-input" id="sc-costo" type="number" placeholder="0.00" oninput="calcCostoKg()">
+        <input class="form-input" id="sc-costo" type="number" placeholder="0.00" oninput="calcTrozado()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">¿Vende pollo entero también?</label>
+        <select class="form-select" id="sc-vende-entero" onchange="calcTrozado()">
+          <option value="no">No — todo se trozea</option>
+          <option value="si">Sí — parte entero</option>
+        </select>
       </div>
     </div>
-    <div id="sc-ckg-info" style="display:none;background:var(--verde-light);border-radius:var(--rs);padding:8px 12px;font-size:12px;color:var(--verde-dark);margin-bottom:8px;"></div>
+    <div id="sc-trozado-info" style="display:none;background:var(--gris);border-radius:var(--rs);padding:10px;margin-bottom:8px;font-size:12px;line-height:1.8;"></div>
     <button class="btn-verde" onclick="guardarCompra()">Registrar compra (descuenta de caja)</button>
   </div>
   <div id="stock-productos"></div>
 </div>
 
-<!-- TAB PRECIOS -->
+<!-- TAB CLIENTES -->
+<div class="view" id="view-clientes">
+  <div class="periodo-row">
+    <button class="periodo-btn active" onclick="setClientesPeriodo('todo',this)">Todo</button>
+    <button class="periodo-btn" onclick="setClientesPeriodo('mes',this)">Mes</button>
+    <button class="periodo-btn" onclick="setClientesPeriodo('semana',this)">Semana</button>
+  </div>
+  <div id="clientes-ranking"></div>
+</div>
+
+<!-- TAB EXPORTAR -->
+<div class="view" id="view-exportar">
+  <div class="periodo-row">
+    <button class="periodo-btn active" onclick="setExportarPeriodo('hoy',this)">Hoy</button>
+    <button class="periodo-btn" onclick="setExportarPeriodo('semana',this)">Semana</button>
+    <button class="periodo-btn" onclick="setExportarPeriodo('mes',this)">Mes</button>
+    <button class="periodo-btn" onclick="setExportarPeriodo('anio',this)">Año</button>
+  </div>
+  <div class="form-section">
+    <div class="form-title">📋 Copia este texto y pégalo en Excel</div>
+    <div style="font-size:11px;color:var(--texto3);margin-bottom:10px;">Toca el área → Selecciona todo → Copia</div>
+    <textarea id="exportar-texto" readonly
+      style="width:100%;height:320px;font-family:monospace;font-size:11px;border:1.5px solid var(--borde);border-radius:var(--rs);padding:10px;background:var(--gris);color:var(--texto);resize:none;line-height:1.6;"
+      onclick="this.select()"></textarea>
+    <button onclick="copiarTextoExportar()" class="btn-verde" style="margin-top:8px;">📋 Copiar todo</button>
+  </div>
+</div>
 <div class="view" id="view-precios">
   <div class="form-section">
     <div class="form-title">Precios por kilogramo</div>
@@ -649,6 +674,8 @@ function switchTab(tab){
   if(tab==='caja') renderCaja();
   if(tab==='stock') renderStock();
   if(tab==='precios') renderPrecios();
+  if(tab==='clientes') renderClientes();
+  if(tab==='exportar') renderExportar();
   if(tab==='registrar') renderItemsVenta();
 }
 
@@ -704,6 +731,7 @@ function renderCaja(){
   renderComparativo(totalV, ventas.length);
   renderGraficoDias(regs);
   renderRanking(ventas);
+  renderTorta(totalV, totalG, yape, efectivo, gastos);
 
   var lista = document.getElementById('movimientos-lista');
   if(!regs.length){lista.innerHTML='<div style="text-align:center;color:var(--texto3);font-size:13px;padding:12px">Sin registros en este período</div>';return;}
@@ -747,7 +775,73 @@ function renderComparativo(totalActual, countActual){
     '<div style="font-size:11px;color:'+color+'">'+(diff>=0?'+':'')+'S/ '+diff.toFixed(2)+'</div></div></div>';
 }
 
-// ── GRÁFICO DÍAS ──
+// ── GRÁFICO TORTA ──
+function renderTorta(totalV, totalG, yape, efectivo, gastos){
+  var canvas = document.getElementById('grafico-torta');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.offsetWidth - 32;
+  canvas.height = 200;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  var cx = canvas.width/2;
+  var cy = canvas.height/2;
+  var radio = Math.min(cx,cy) - 10;
+
+  // Calcular gastos por categoría
+  var gastosProv = gastos.filter(function(g){return g.desc&&g.desc.indexOf('Compra:')!==-1;})
+    .reduce(function(s,g){return s+g.total;},0);
+  var gastosOtros = totalG - gastosProv;
+  var flujo = totalV - totalG;
+
+  var segmentos = [
+    {label:'Yape', valor:yape, color:'#6C3FC5'},
+    {label:'Efectivo', valor:efectivo, color:'#2D6A4F'},
+    {label:'Compras proveedor', valor:gastosProv, color:'#C0392B'},
+    {label:'Otros gastos', valor:gastosOtros, color:'#E8A020'},
+    {label:'Flujo neto', valor:Math.max(0,flujo), color:'#C9A84C'}
+  ].filter(function(s){return s.valor>0;});
+
+  var total = segmentos.reduce(function(s,seg){return s+seg.valor;},0);
+  if(total<=0){
+    ctx.fillStyle='var(--texto3)';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillText('Sin datos en este período',cx,cy);
+    document.getElementById('torta-leyenda').innerHTML='';
+    return;
+  }
+
+  var angulo = -Math.PI/2;
+  segmentos.forEach(function(seg){
+    var porcion = (seg.valor/total)*(Math.PI*2);
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,radio,angulo,angulo+porcion);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+    angulo += porcion;
+  });
+
+  // Círculo central blanco
+  ctx.beginPath();ctx.arc(cx,cy,radio*0.45,0,Math.PI*2);
+  ctx.fillStyle='white';ctx.fill();
+  ctx.fillStyle='var(--verde-dark)';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+  ctx.fillText('S/ '+totalV.toFixed(0),cx,cy-6);
+  ctx.fillStyle='var(--texto3)';ctx.font='10px sans-serif';
+  ctx.fillText('ingresos',cx,cy+10);
+
+  // Leyenda
+  var leyendaHtml = '';
+  segmentos.forEach(function(seg){
+    var pct = Math.round((seg.valor/total)*100);
+    leyendaHtml += '<div style="display:flex;align-items:center;gap:6px;background:var(--gris);border-radius:var(--rs);padding:6px 8px;">';
+    leyendaHtml += '<div style="width:12px;height:12px;border-radius:3px;background:'+seg.color+';flex-shrink:0;"></div>';
+    leyendaHtml += '<div><div style="font-size:11px;font-weight:600;">'+seg.label+'</div>';
+    leyendaHtml += '<div style="font-size:10px;color:var(--texto3);">S/ '+seg.valor.toFixed(2)+' ('+pct+'%)</div></div></div>';
+  });
+  document.getElementById('torta-leyenda').innerHTML = leyendaHtml;
+}
 function renderGraficoDias(regs){
   var dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var totales = [0,0,0,0,0,0,0];
@@ -919,43 +1013,70 @@ function guardarGasto(){
 }
 
 // ── STOCK ──
-function calcCostoKg(){
-  var kg = parseFloat(document.getElementById('sc-kg').value)||0;
+var TROZADO = {'descargado-pierna':0.35,'alitas':0.15,'pecho-sin-hueso':0.20};
+
+function calcCostoKg(){} // mantener por compatibilidad
+
+function calcTrozado(){
+  var und = parseInt(document.getElementById('sc-und').value)||0;
+  var peso = parseFloat(document.getElementById('sc-peso').value)||0;
   var costo = parseFloat(document.getElementById('sc-costo').value)||0;
-  var el = document.getElementById('sc-ckg-info');
-  if(kg>0&&costo>0){el.style.display='block';el.textContent='Costo por kg: S/ '+(costo/kg).toFixed(2);}
-  else el.style.display='none';
+  var vendeEntero = document.getElementById('sc-vende-entero').value==='si';
+  var el = document.getElementById('sc-trozado-info');
+  if(und<=0||peso<=0){el.style.display='none';return;}
+  var kgTotal = und*peso;
+  var costoKg = costo>0?costo/kgTotal:0;
+  var kgPierna=Math.round(kgTotal*0.35*10)/10;
+  var kgAlitas=Math.round(kgTotal*0.15*10)/10;
+  var kgPecho=Math.round(kgTotal*0.20*10)/10;
+  var kgEntero=vendeEntero?Math.round(kgTotal*0.30*10)/10:0;
+  el.style.display='block';
+  el.innerHTML='<strong>🐔 '+und+' pollos × '+peso+'kg = '+kgTotal.toFixed(1)+' kg totales</strong><br>'
+    +(costoKg>0?'💰 Costo/kg: S/ '+costoKg.toFixed(2)+'<br>':'')
+    +'<br>Distribución al trozar:<br>'
+    +(vendeEntero?'🐔 Entero: '+kgEntero+' kg<br>':'')
+    +'🍖 Pierna/Pecho: '+kgPierna+' kg<br>'
+    +'🍗 Alitas: '+kgAlitas+' kg<br>'
+    +'🥩 Pecho s/hueso: '+kgPecho+' kg';
 }
 
 function guardarCompra(){
-  var prod = document.getElementById('sc-prod').value;
   var und = parseInt(document.getElementById('sc-und').value)||0;
-  var kg = parseFloat(document.getElementById('sc-kg').value)||0;
+  var peso = parseFloat(document.getElementById('sc-peso').value)||0;
   var costo = parseFloat(document.getElementById('sc-costo').value)||0;
-  if(kg<=0||costo<=0){mostrarToast('Ingresa kg y costo','error');return;}
-
-  var s = stockData[prod]||(stockData[prod]={kg:0,und:0,costoKg:0});
-  var costoKg = costo/kg;
-  var totalKgNuevo = s.kg + kg;
-  s.costoKg = totalKgNuevo>0 ? ((s.kg*s.costoKg)+(kg*costoKg))/totalKgNuevo : costoKg;
-  s.kg = Math.round((s.kg+kg)*10)/10;
-  s.und += und;
-
-  var pNombre = PRODUCTOS.filter(function(p){return p.id===prod;})[0].nombre;
-  var ahora = new Date();
-  registros.push({
-    id:Date.now(), tipo:'gasto',
-    fecha:ahora.toISOString(),
-    fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
-    desc:'Compra: '+pNombre+' '+kg+'kg', total:costo
+  var vendeEntero = document.getElementById('sc-vende-entero').value==='si';
+  if(und<=0||peso<=0){mostrarToast('Ingresa unidades y peso','error');return;}
+  var kgTotal = und*peso;
+  var costoKg = costo>0?costo/kgTotal:0;
+  var cortes = [
+    {id:'descargado-pierna',kg:Math.round(kgTotal*0.35*10)/10},
+    {id:'alitas',kg:Math.round(kgTotal*0.15*10)/10},
+    {id:'pecho-sin-hueso',kg:Math.round(kgTotal*0.20*10)/10}
+  ];
+  if(vendeEntero) cortes.push({id:'entero',kg:Math.round(kgTotal*0.30*10)/10});
+  cortes.forEach(function(a){
+    if(!stockData[a.id]) stockData[a.id]={kg:0,und:0,costoKg:0};
+    var s=stockData[a.id];
+    var tkn=s.kg+a.kg;
+    s.costoKg=tkn>0?((s.kg*s.costoKg)+(a.kg*costoKg))/tkn:costoKg;
+    s.kg=Math.round((s.kg+a.kg)*10)/10;
   });
-
-  guardarCaja(); guardarStock();
-  enviarASheets({tipo:'gasto', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}), desc:'Compra: '+pNombre+' '+kg+'kg', total:costo});
-  ['sc-und','sc-kg','sc-costo'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('sc-ckg-info').style.display='none';
-  mostrarToast('Compra registrada — '+kg+'kg de '+pNombre+' ✓','ok');
-  renderStock(); renderCaja();
+  if(!stockData['entero']) stockData['entero']={kg:0,und:0,costoKg:0};
+  stockData['entero'].und+=und;
+  var ahora=new Date();
+  if(costo>0){
+    registros.push({id:Date.now(),tipo:'gasto',fecha:ahora.toISOString(),
+      fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+      desc:'Compra: '+und+' pollos × '+peso+'kg = '+kgTotal.toFixed(1)+'kg',total:costo});
+    enviarASheets({tipo:'gasto',fecha:ahora.toISOString(),
+      fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+      desc:'Compra: '+und+' pollos × '+peso+'kg',total:costo});
+  }
+  guardarCaja();guardarStock();
+  ['sc-und','sc-peso','sc-costo'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('sc-trozado-info').style.display='none';
+  mostrarToast('Compra registrada — '+kgTotal.toFixed(1)+'kg distribuidos ✓','ok');
+  renderStock();renderCaja();
 }
 
 function renderStock(){
@@ -1093,6 +1214,145 @@ function reiniciarDatos(){
   }catch(e){}
   renderCaja(); renderStock();
   mostrarToast('Datos reiniciados ✓','ok');
+}
+
+// ── CLIENTES ──
+var clientesPeriodoActual = 'todo';
+
+function setClientesPeriodo(p, btn){
+  clientesPeriodoActual = p;
+  document.querySelectorAll('#view-clientes .periodo-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderClientes();
+}
+
+function renderClientes(){
+  var regs = clientesPeriodoActual==='todo' ? registros : filtrarPeriodo(clientesPeriodoActual);
+  var ventas = regs.filter(function(r){return r.tipo==='venta';});
+
+  var clientes = {};
+  ventas.forEach(function(v){
+    var key = (v.tel||'sin-tel');
+    if(!clientes[key]){
+      clientes[key] = {
+        nombre: v.cliente||'Sin nombre',
+        tel: v.tel||'—',
+        pedidos: 0,
+        total: 0,
+        ultimaVisita: v.fechaStr||'',
+        productos: {}
+      };
+    }
+    clientes[key].pedidos++;
+    clientes[key].total += v.montoReal!==undefined?v.montoReal:v.total;
+    clientes[key].ultimaVisita = v.fechaStr||clientes[key].ultimaVisita;
+    if(v.items) v.items.forEach(function(item){
+      clientes[key].productos[item] = (clientes[key].productos[item]||0)+1;
+    });
+  });
+
+  var sorted = Object.values(clientes).sort(function(a,b){return b.pedidos-a.pedidos;});
+  var medallas = ['🥇','🥈','🥉'];
+  var html = '';
+
+  if(!sorted.length){
+    html = '<div style="text-align:center;color:var(--texto3);font-size:13px;padding:20px">Sin clientes en este período</div>';
+  } else {
+    sorted.forEach(function(c,i){
+      var prodTop = Object.keys(c.productos).sort(function(a,b){return c.productos[b]-c.productos[a];})[0]||'—';
+      html += '<div class="form-section" style="margin-bottom:10px;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+      html += '<div><div style="font-size:14px;font-weight:600;">'+(medallas[i]||'👤')+' '+c.nombre+'</div>';
+      html += '<div style="font-size:11px;color:var(--texto3);">📞 '+c.tel+'</div></div>';
+      html += '<div style="text-align:right;"><div style="font-family:\'Playfair Display\',serif;font-size:18px;font-weight:700;color:var(--verde)">'+c.pedidos+' pedidos</div>';
+      html += '<div style="font-size:12px;color:var(--texto3);">S/ '+c.total.toFixed(2)+' total</div></div></div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">';
+      html += '<div style="background:var(--verde-light);border-radius:var(--rs);padding:6px 8px;"><strong>Favorito:</strong><br>'+prodTop+'</div>';
+      html += '<div style="background:var(--gris);border-radius:var(--rs);padding:6px 8px;"><strong>Última visita:</strong><br>'+c.ultimaVisita+'</div>';
+      html += '</div></div>';
+    });
+  }
+  document.getElementById('clientes-ranking').innerHTML = html;
+}
+
+// ── EXPORTAR (copiar texto) ──
+var exportarPeriodoActual = 'hoy';
+
+function setExportarPeriodo(p, btn){
+  exportarPeriodoActual = p;
+  document.querySelectorAll('#view-exportar .periodo-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderExportar();
+}
+
+function renderExportar(){
+  var regs = filtrarPeriodo(exportarPeriodoActual);
+  var ventas = regs.filter(function(r){return r.tipo==='venta';});
+  var gastos = regs.filter(function(r){return r.tipo==='gasto';});
+  var periodos = {hoy:'HOY',semana:'SEMANA',mes:'MES',anio:'AÑO'};
+
+  var tv = ventas.reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+  var tg = gastos.reduce(function(s,r){return s+r.total;},0);
+  var yape = ventas.filter(function(r){return r.pago==='yape';}).reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+
+  var sep = '\t'; // tabulador para que Excel lo reconozca como columnas
+  var nl = '\n';
+  var txt = '';
+
+  txt += 'REPORTE AVICEN — '+periodos[exportarPeriodoActual]+nl;
+  txt += new Date().toLocaleString('es-PE')+nl+nl;
+
+  txt += '=== RESUMEN ==='+nl;
+  txt += 'Ingresos totales'+sep+'S/ '+tv.toFixed(2)+nl;
+  txt += 'Yape'+sep+'S/ '+yape.toFixed(2)+nl;
+  txt += 'Efectivo'+sep+'S/ '+(tv-yape).toFixed(2)+nl;
+  txt += 'Gastos'+sep+'S/ '+tg.toFixed(2)+nl;
+  txt += 'Flujo neto'+sep+'S/ '+(tv-tg).toFixed(2)+nl;
+  txt += 'Total ventas'+sep+ventas.length+nl+nl;
+
+  txt += '=== VENTAS ==='+nl;
+  txt += 'Fecha'+sep+'Cliente'+sep+'Teléfono'+sep+'Pago'+sep+'Entrega'+sep+'Productos'+sep+'Total'+nl;
+  ventas.forEach(function(v){
+    txt += (v.fechaStr||'')+sep+(v.cliente||'')+sep+(v.tel||'')+sep+(v.pago||'')+sep+(v.entrega||'')+sep+(v.items?v.items.join(', '):'')+sep+(v.montoReal!==undefined?v.montoReal:v.total).toFixed(2)+nl;
+  });
+  txt += sep+sep+sep+sep+sep+'TOTAL'+sep+tv.toFixed(2)+nl+nl;
+
+  txt += '=== GASTOS ==='+nl;
+  txt += 'Fecha'+sep+'Descripción'+sep+'Monto'+nl;
+  gastos.forEach(function(g){
+    txt += (g.fechaStr||'')+sep+(g.desc||'')+sep+g.total.toFixed(2)+nl;
+  });
+  txt += sep+'TOTAL GASTOS'+sep+tg.toFixed(2)+nl+nl;
+
+  // Ranking clientes
+  var clientes = {};
+  ventas.forEach(function(v){
+    var key = v.tel||v.cliente||'?';
+    if(!clientes[key]) clientes[key]={nombre:v.cliente||'',tel:v.tel||'',pedidos:0,total:0};
+    clientes[key].pedidos++;
+    clientes[key].total += v.montoReal!==undefined?v.montoReal:v.total;
+  });
+  var sortedC = Object.values(clientes).sort(function(a,b){return b.pedidos-a.pedidos;});
+  if(sortedC.length){
+    txt += '=== CLIENTES FRECUENTES ==='+nl;
+    txt += 'Cliente'+sep+'Teléfono'+sep+'Pedidos'+sep+'Total'+nl;
+    sortedC.forEach(function(c){
+      txt += c.nombre+sep+c.tel+sep+c.pedidos+sep+'S/ '+c.total.toFixed(2)+nl;
+    });
+  }
+
+  document.getElementById('exportar-texto').value = txt;
+}
+
+function copiarTextoExportar(){
+  var el = document.getElementById('exportar-texto');
+  el.select();
+  try{
+    document.execCommand('copy');
+    mostrarToast('¡Copiado! Pégalo en Excel ✓','ok');
+  }catch(e){
+    mostrarToast('Selecciona el texto y copia manualmente','error');
+  }
 }
 
 // ── CAMBIAR CLAVE ──
