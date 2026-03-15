@@ -329,6 +329,8 @@ var CLAVE_DEFAULT = 'avicen2024';
 var CAJA_KEY = 'avicen_caja_v3';
 var STOCK_KEY = 'avicen_stock_v3';
 var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwebPNrOOMmWqfBtWJpA1722TbTfdsVmqglmjCXbxXMiJOZQY5bobGmUd_yxRgcBg0R/exec';
+var TELEGRAM_TOKEN = '8667281211:AAF9oTEWeHJhKpDXFYFjpUj7uudKBbojxc0';
+var TELEGRAM_GRUPO_ID = '-1003363051717';
 
 function enviarASheets(datos){
   try{
@@ -405,7 +407,30 @@ function cargarDatos(){
 }
 
 function guardarCaja(){try{localStorage.setItem(CAJA_KEY,JSON.stringify(registros));}catch(e){}}
-function guardarStock(){try{localStorage.setItem(STOCK_KEY,JSON.stringify(stockData));}catch(e){}}
+function guardarStock(){
+  try{localStorage.setItem(STOCK_KEY,JSON.stringify(stockData));}catch(e){}
+  verificarStockCritico();
+}
+
+var _ultimaAlertaStock = {};
+function verificarStockCritico(){
+  var ahora = Date.now();
+  PRODUCTOS.forEach(function(p){
+    var s = stockData[p.id]||{kg:0};
+    var esCritico = s.kg<=0 || s.kg<=p.minKg/2;
+    var esBajo = s.kg<=p.minKg && s.kg>p.minKg/2;
+    // Solo alertar una vez cada 30 minutos por producto
+    var ultimaAlerta = _ultimaAlertaStock[p.id]||0;
+    if((esCritico||esBajo) && (ahora-ultimaAlerta)>1800000){
+      _ultimaAlertaStock[p.id] = ahora;
+      var nivel = esCritico ? '🔴 STOCK CRÍTICO' : '⚠️ Stock bajo';
+      var msg = nivel+' — AVICEN\n'+p.emoji+' '+p.nombre+': '+s.kg.toFixed(1)+' kg restantes\n'+(esCritico?'⚡ Necesita reposición urgente':'📦 Considerar reponer pronto');
+      try{
+        fetch('https://api.telegram.org/bot'+TELEGRAM_TOKEN+'/sendMessage?chat_id='+encodeURIComponent(TELEGRAM_GRUPO_ID)+'&text='+encodeURIComponent(msg)).catch(function(){});
+      }catch(e){}
+    }
+  });
+}
 
 // ── REGISTRO RÁPIDO DESDE ENLACE ──
 function mostrarPedidoRapido(b64){
@@ -476,6 +501,21 @@ function registrarPedidoRapido(b64){
       }
     });
     guardarCaja(); guardarStock();
+    // Confirmación automática al cliente
+    var telCliente = d.t ? d.t.replace(/\D/g,'') : '';
+    if(telCliente){
+      var ahEst = new Date();
+      ahEst.setMinutes(ahEst.getMinutes()+(d.e==='d'?35:15));
+      var horaEst = ahEst.getHours()+':'+String(ahEst.getMinutes()).padStart(2,'0');
+      var msgConfirm = '✅ *Hola '+d.n+'!*\n'
+        +'Tu pedido AVICEN fue confirmado 🐔\n'
+        +'━━━━━━━━━━━━━━━\n'
+        +(d.e==='d'?'🛵 Tu pedido llegará aprox. a las *'+horaEst+'*':'🏪 Tu pedido estará listo aprox. a las *'+horaEst+'*')+'\n'
+        +'━━━━━━━━━━━━━━━\n'
+        +'¡Gracias por tu preferencia! 🙏';
+      var waConfirm = 'https://wa.me/51'+telCliente+'?text='+encodeURIComponent(msgConfirm);
+      setTimeout(function(){window.open(waConfirm,'_blank');},1000);
+    }
     // Marcar pedido como ya registrado usando fecha exacta
     var yaRegistrados = [];
     try{yaRegistrados = JSON.parse(localStorage.getItem('avicen_pedidos_registrados')||'[]');}catch(e){}

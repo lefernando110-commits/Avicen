@@ -759,6 +759,18 @@ function enviarPedido(){
     ?'🛵 Delivery '+zonaLabel+' — '+(t.costoDelivery===0?'GRATIS':'S/ '+t.costoDelivery.toFixed(2))
     :'🏪 Recojo en tienda';
 
+  // Hora estimada de entrega
+  var horaEst = '';
+  if(tipoEntrega==='delivery'){
+    var ahEstimada = new Date();
+    ahEstimada.setMinutes(ahEstimada.getMinutes()+35);
+    horaEst = '⏱️ Entrega estimada: '+ahEstimada.getHours()+':'+String(ahEstimada.getMinutes()).padStart(2,'0')+' aprox.';
+  } else {
+    var ahEstimada2 = new Date();
+    ahEstimada2.setMinutes(ahEstimada2.getMinutes()+15);
+    horaEst = '⏱️ Listo para recoger: '+ahEstimada2.getHours()+':'+String(ahEstimada2.getMinutes()).padStart(2,'0')+' aprox.';
+  }
+
   // ── Mensaje WhatsApp (bonito con emojis) ──
   var waLineas='🐔 *PEDIDO AVICEN*\n';
   waLineas+='━━━━━━━━━━━━━━━\n';
@@ -781,6 +793,7 @@ function enviarPedido(){
   }
   waLineas+='━━━━━━━━━━━━━━━\n';
   waLineas+=entregaLabel+'\n';
+  waLineas+=horaEst+'\n';
   if(tipoEntrega==='delivery') waLineas+='🏠 '+direccion+'\n';
   if(nota) waLineas+='📝 Nota: '+nota+'\n';
   waLineas+='━━━━━━━━━━━━━━━\n';
