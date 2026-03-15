@@ -453,14 +453,26 @@ function mostrarPedidoRapido(b64){
     var wrap = document.getElementById('pedido-rapido-wrap');
     var itemsHtml = '';
     if(d.items && d.items.length){
-      d.items.forEach(function(it){itemsHtml += it.nombre+' — '+it.kg+'kg — S/ '+parseFloat(it.sub).toFixed(2)+'<br>';});
+      d.items.forEach(function(it){
+        var prod = PRODUCTOS.filter(function(p){return p.id===it.id;})[0];
+        if(prod) itemsHtml += prod.emoji+' '+prod.nombre+' — '+it.kg+'kg<br>';
+      });
     }
-    itemsHtml += (d.e==='delivery'?'🛵 Delivery':'🏪 Recojo')+' | '+(d.p==='yape'?'💜 Yape':'💵 Efectivo');
-    itemsHtml += '<br><strong>Total: S/ '+parseFloat(d.total).toFixed(2)+'</strong>';
+    if(d.combo) itemsHtml += '🎁 Combo: '+d.combo+'<br>';
+    itemsHtml += (d.e==='d'?'🛵 Delivery':'🏪 Recojo')+' | '+(d.p==='y'?'💜 Yape':'💵 Efectivo');
+    if(!d.combo) itemsHtml += '<br><strong>Total: S/ '+parseFloat(d.total).toFixed(2)+'</strong>';
+
+    // Si tiene combo, mostrar campo para ingresar precio
+    var campoCombo = d.combo
+      ? '<div style="margin:10px 0"><div style="font-size:11px;opacity:.7;margin-bottom:4px;">💰 Ingresa el precio acordado con el cliente:</div>'
+        +'<input type="number" id="combo-precio-input" placeholder="S/ 0.00" step="0.10" style="width:100%;padding:10px;border-radius:var(--rs);border:none;font-size:16px;text-align:center;font-weight:700;"></div>'
+      : '';
+
     wrap.innerHTML = '<div class="pedido-rapido-banner">'
       +'<div class="pedido-rapido-titulo">📥 Pedido recibido</div>'
       +'<div class="pedido-rapido-sub">'+d.n+' · '+d.t+'</div>'
       +'<div class="pedido-rapido-items">'+itemsHtml+'</div>'
+      +campoCombo
       +'<div class="pedido-rapido-btns">'
       +'<button class="btn-confirmar" onclick="registrarPedidoRapido(\''+b64+'\')">✅ Registrar en caja</button>'
       +'<button class="btn-rechazar" onclick="document.getElementById(\'pedido-rapido-wrap\').innerHTML=\'\'">✕ Ignorar</button>'
@@ -474,14 +486,24 @@ function registrarPedidoRapido(b64){
     var d = JSON.parse(json);
     var ahora = new Date();
 
-    // Reconstruir nombres de productos (formato nuevo abreviado o formato antiguo)
+    // Reconstruir nombres de productos
     var itemsArr = [];
     if(d.items) d.items.forEach(function(it){
       var prod = PRODUCTOS.filter(function(p){return p.id===it.id;})[0];
       if(prod && it.kg>0) itemsArr.push(prod.nombre+' '+it.kg+'kg');
     });
+    if(d.combo) itemsArr.push('Combo: '+d.combo);
 
-    // Normalizar pago y entrega (nuevo formato abreviado o antiguo)
+    // Si hay combo, obtener precio ingresado
+    var totalFinal = parseFloat(d.total)||0;
+    if(d.combo){
+      var precioComboEl = document.getElementById('combo-precio-input');
+      var precioCombo = precioComboEl ? parseFloat(precioComboEl.value)||0 : 0;
+      if(precioCombo<=0){mostrarToast('Ingresa el precio del combo','error');return;}
+      totalFinal = totalFinal + precioCombo;
+    }
+
+    // Normalizar pago y entrega
     var pago = d.p==='y'?'yape':(d.p==='e'?'efectivo':d.p);
     var entrega = d.e==='d'?'delivery':(d.e==='r'?'recojo':d.e);
 
@@ -490,7 +512,7 @@ function registrarPedidoRapido(b64){
       fecha: d.fecha || ahora.toISOString(),
       fechaStr: ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
       cliente: d.n, tel: d.t, pago: pago, entrega: entrega,
-      items: itemsArr, total: parseFloat(d.total), montoReal: parseFloat(d.total)
+      items: itemsArr, total: totalFinal, montoReal: totalFinal
     });
 
     // Descontar stock

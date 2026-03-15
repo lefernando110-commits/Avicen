@@ -816,6 +816,7 @@ function enviarPedido(){
     n: nombre, t: tel, p: metodoPago==='yape'?'y':'e',
     e: tipoEntrega==='delivery'?'d':'r',
     items: itemsNorm.map(function(i){return {id:i.id,kg:i.kg};}),
+    combo: combo ? combo.desc : null,
     total: t.total, fecha: new Date().toISOString()
   };
   var pedidoB64 = btoa(unescape(encodeURIComponent(JSON.stringify(pedidoData))));
