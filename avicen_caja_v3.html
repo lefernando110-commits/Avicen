@@ -981,13 +981,22 @@ function exportarExcel(p){
   gastos.forEach(function(g){csv+='"'+g.fechaStr+'","'+g.desc+'",'+g.total.toFixed(2)+'\n';});
   csv += ',,TOTAL GASTOS:,'+tg.toFixed(2)+'\n\nFLUJO NETO:,S/ '+(tv-tg).toFixed(2)+'\n';
 
-  var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href=url; a.download='AVICEN_'+periodos[periodo]+'_'+new Date().toLocaleDateString('es-PE').replace(/\//g,'-')+'.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  mostrarToast('Excel '+periodos[periodo]+' descargado ✓','ok');
+  // Método compatible con Android
+  var nombreArchivo = 'AVICEN_'+periodos[periodo]+'_'+new Date().toLocaleDateString('es-PE').replace(/\//g,'-')+'.csv';
+  try{
+    // Intentar descarga normal primero
+    var blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href=url; a.download=nombreArchivo;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    // Fallback: abrir en nueva pestaña para guardar manualmente
+    var dataUri = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    window.open(dataUri,'_blank');
+  }
+  mostrarToast('Excel '+periodos[periodo]+' listo ✓','ok');
 }
 
 function reiniciarDatos(){
