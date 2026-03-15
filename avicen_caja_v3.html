@@ -440,14 +440,26 @@ function registrarPedidoRapido(b64){
     var json = decodeURIComponent(escape(atob(b64)));
     var d = JSON.parse(json);
     var ahora = new Date();
+
+    // Reconstruir nombres de productos (formato nuevo abreviado o formato antiguo)
+    var itemsArr = [];
+    if(d.items) d.items.forEach(function(it){
+      var prod = PRODUCTOS.filter(function(p){return p.id===it.id;})[0];
+      if(prod && it.kg>0) itemsArr.push(prod.nombre+' '+it.kg+'kg');
+    });
+
+    // Normalizar pago y entrega (nuevo formato abreviado o antiguo)
+    var pago = d.p==='y'?'yape':(d.p==='e'?'efectivo':d.p);
+    var entrega = d.e==='d'?'delivery':(d.e==='r'?'recojo':d.e);
+
     registros.push({
       id: Date.now(), tipo: 'venta',
       fecha: d.fecha || ahora.toISOString(),
       fechaStr: ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
-      cliente: d.n, tel: d.t, pago: d.p, entrega: d.e,
-      items: d.items ? d.items.map(function(i){return i.nombre+' '+i.kg+'kg';}) : [],
-      total: parseFloat(d.total), montoReal: parseFloat(d.total)
+      cliente: d.n, tel: d.t, pago: pago, entrega: entrega,
+      items: itemsArr, total: parseFloat(d.total), montoReal: parseFloat(d.total)
     });
+
     // Descontar stock
     if(d.items) d.items.forEach(function(it){
       if(it.id && stockData[it.id]){

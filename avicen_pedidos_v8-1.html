@@ -785,9 +785,9 @@ function enviarPedido(){
 
   // ── Generar enlace de registro rápido para App Caja ──
   var pedidoData = {
-    n: nombre, t: tel, p: metodoPago==='yape'?'yape':'efectivo',
-    e: tipoEntrega, d: direccion||'', nota: nota||'',
-    items: itemsNorm.map(function(i){return {id:i.id,nombre:i.nombre,kg:i.kg,sub:i.subtotal};}),
+    n: nombre, t: tel, p: metodoPago==='yape'?'y':'e',
+    e: tipoEntrega==='delivery'?'d':'r',
+    items: itemsNorm.map(function(i){return {id:i.id,kg:i.kg};}),
     total: t.total, fecha: new Date().toISOString()
   };
   var pedidoB64 = btoa(unescape(encodeURIComponent(JSON.stringify(pedidoData))));
