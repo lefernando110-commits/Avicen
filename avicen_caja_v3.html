@@ -140,6 +140,7 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
   <button class="main-tab" id="tab-stock" onclick="switchTab('stock')">📦 Stock</button>
   <button class="main-tab" id="tab-clientes" onclick="switchTab('clientes')">👥 Clientes</button>
   <button class="main-tab" id="tab-exportar" onclick="switchTab('exportar')">📋 Exportar</button>
+  <button class="main-tab" id="tab-agenda" onclick="switchTab('agenda')">📅 Agenda</button>
   <button class="main-tab" id="tab-precios" onclick="switchTab('precios')">💰 Precios</button>
 </div>
 
@@ -233,10 +234,24 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
 
   <div class="form-section">
     <div class="form-title">Registrar gasto</div>
+    <div style="font-size:11px;color:var(--texto3);margin-bottom:8px;">📅 Fecha: <strong id="gasto-fecha-hoy"></strong></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" id="g-categoria">
+          <option value="compra">🐔 Compra pollos</option>
+          <option value="servicios">💡 Servicios (luz, agua)</option>
+          <option value="local">🏠 Local / alquiler</option>
+          <option value="personal">👩 Personal / sueldo</option>
+          <option value="transporte">🚗 Transporte</option>
+          <option value="otros">📦 Otros</option>
+        </select>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group" style="flex:2">
         <label class="form-label">Descripción</label>
-        <input class="form-input" id="g-desc" placeholder="Ej: Transporte, limpieza...">
+        <input class="form-input" id="g-desc" placeholder="Ej: Luz mes de marzo...">
       </div>
       <div class="form-group">
         <label class="form-label">Monto (S/)</label>
@@ -316,6 +331,64 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
     <button onclick="copiarTextoExportar()" class="btn-verde" style="margin-top:8px;">📋 Copiar todo</button>
   </div>
 </div>
+<!-- TAB AGENDA -->
+<div class="view" id="view-agenda">
+  <div class="form-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button onclick="cambiarMes(-1)" style="background:none;border:1px solid var(--borde);border-radius:var(--rs);padding:6px 12px;cursor:pointer;font-size:16px;">‹</button>
+      <div id="agenda-mes-titulo" style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--verde-dark);"></div>
+      <button onclick="cambiarMes(1)" style="background:none;border:1px solid var(--borde);border-radius:var(--rs);padding:6px 12px;cursor:pointer;font-size:16px;">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Dom</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Lun</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Mar</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Mié</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Jue</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Vie</div>
+      <div style="text-align:center;font-size:10px;font-weight:700;color:var(--texto3);padding:4px 0;">Sáb</div>
+    </div>
+    <div id="agenda-calendario" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+  </div>
+
+  <!-- Detalle del día seleccionado -->
+  <div class="form-section" id="agenda-detalle-wrap" style="display:none;">
+    <div class="form-title" id="agenda-detalle-titulo"></div>
+    <div id="agenda-detalle-contenido"></div>
+  </div>
+
+  <!-- Recordatorios -->
+  <div class="form-section">
+    <div class="form-title">⏰ Agregar recordatorio</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha</label>
+        <input type="date" class="form-input" id="rec-fecha">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="rec-tipo">
+          <option value="compra">🐔 Comprar pollos</option>
+          <option value="pago">💸 Pago / gasto</option>
+          <option value="evento">📌 Evento</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <input class="form-input" id="rec-desc" placeholder="Ej: Pagar luz, Comprar 20 pollos...">
+      </div>
+    </div>
+    <button class="btn-verde" onclick="agregarRecordatorio()">Guardar recordatorio</button>
+  </div>
+
+  <!-- Lista de recordatorios próximos -->
+  <div class="form-section">
+    <div class="form-title">📋 Próximos recordatorios</div>
+    <div id="agenda-recordatorios-lista"></div>
+  </div>
+</div>
 <div class="view" id="view-precios">
   <div class="form-section">
     <div class="form-title">Precios por kilogramo</div>
@@ -346,7 +419,7 @@ body{font-family:'Outfit',sans-serif;background:var(--crema);color:var(--texto);
     </div>
     <button class="btn-tierra" onclick="guardarNuevaClave()">🔑 Guardar nueva clave</button>
   </div>
-</div>
+</div><!-- /view-precios -->
 
 </div><!-- /app -->
 
@@ -681,7 +754,12 @@ function switchTab(tab){
   if(tab==='precios') renderPrecios();
   if(tab==='clientes') renderClientes();
   if(tab==='exportar') renderExportar();
-  if(tab==='registrar') renderItemsVenta();
+  if(tab==='agenda') renderAgenda();
+  if(tab==='registrar'){
+    renderItemsVenta();
+    var el=document.getElementById('gasto-fecha-hoy');
+    if(el) el.textContent=new Date().toLocaleString('es-PE',{dateStyle:'full',timeStyle:'short'});
+  }
 }
 
 // ── FILTRO PERIODO ──
@@ -793,23 +871,38 @@ function renderTorta(totalV, totalG, yape, efectivo, gastos){
   var cy = canvas.height/2;
   var radio = Math.min(cx,cy) - 10;
 
-  // Calcular gastos por categoría
-  var gastosProv = gastos.filter(function(g){return g.desc&&g.desc.indexOf('Compra:')!==-1;})
-    .reduce(function(s,g){return s+g.total;},0);
-  var gastosOtros = totalG - gastosProv;
-  var flujo = totalV - totalG;
+  // Agrupar gastos por categoría
+  var catColors = {
+    'compra':'#C0392B', 'servicios':'#E67E22', 'local':'#8E44AD',
+    'personal':'#2980B9', 'transporte':'#16A085', 'otros':'#7F8C8D'
+  };
+  var catLabels = {
+    'compra':'🐔 Compra pollos', 'servicios':'💡 Servicios',
+    'local':'🏠 Local', 'personal':'👩 Personal',
+    'transporte':'🚗 Transporte', 'otros':'📦 Otros'
+  };
+  var catTotales = {};
+  gastos.forEach(function(g){
+    var cat = g.categoria || (g.desc&&g.desc.indexOf('Compra:')!==-1?'compra':'otros');
+    catTotales[cat] = (catTotales[cat]||0) + g.total;
+  });
 
   var segmentos = [
-    {label:'Yape', valor:yape, color:'#6C3FC5'},
-    {label:'Efectivo', valor:efectivo, color:'#2D6A4F'},
-    {label:'Compras proveedor', valor:gastosProv, color:'#C0392B'},
-    {label:'Otros gastos', valor:gastosOtros, color:'#E8A020'},
-    {label:'Flujo neto', valor:Math.max(0,flujo), color:'#C9A84C'}
-  ].filter(function(s){return s.valor>0;});
+    {label:'💜 Yape', valor:yape, color:'#6C3FC5'},
+    {label:'💵 Efectivo', valor:efectivo, color:'#2D6A4F'}
+  ];
+  Object.keys(catTotales).forEach(function(cat){
+    if(catTotales[cat]>0){
+      segmentos.push({label:catLabels[cat]||cat, valor:catTotales[cat], color:catColors[cat]||'#7F8C8D'});
+    }
+  });
+  var flujo = Math.max(0, totalV - totalG);
+  if(flujo>0) segmentos.push({label:'📊 Flujo neto', valor:flujo, color:'#C9A84C'});
 
+  segmentos = segmentos.filter(function(s){return s.valor>0;});
   var total = segmentos.reduce(function(s,seg){return s+seg.valor;},0);
   if(total<=0){
-    ctx.fillStyle='var(--texto3)';ctx.font='13px sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='#8A7060';ctx.font='13px sans-serif';ctx.textAlign='center';
     ctx.fillText('Sin datos en este período',cx,cy);
     document.getElementById('torta-leyenda').innerHTML='';
     return;
@@ -818,34 +911,29 @@ function renderTorta(totalV, totalG, yape, efectivo, gastos){
   var angulo = -Math.PI/2;
   segmentos.forEach(function(seg){
     var porcion = (seg.valor/total)*(Math.PI*2);
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
+    ctx.beginPath();ctx.moveTo(cx,cy);
     ctx.arc(cx,cy,radio,angulo,angulo+porcion);
-    ctx.closePath();
-    ctx.fillStyle = seg.color;
-    ctx.fill();
+    ctx.closePath();ctx.fillStyle=seg.color;ctx.fill();
     ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
-    angulo += porcion;
+    angulo+=porcion;
   });
 
-  // Círculo central blanco
   ctx.beginPath();ctx.arc(cx,cy,radio*0.45,0,Math.PI*2);
   ctx.fillStyle='white';ctx.fill();
-  ctx.fillStyle='var(--verde-dark)';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#1B4332';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
   ctx.fillText('S/ '+totalV.toFixed(0),cx,cy-6);
-  ctx.fillStyle='var(--texto3)';ctx.font='10px sans-serif';
+  ctx.fillStyle='#8A7060';ctx.font='10px sans-serif';
   ctx.fillText('ingresos',cx,cy+10);
 
-  // Leyenda
-  var leyendaHtml = '';
+  var leyendaHtml='';
   segmentos.forEach(function(seg){
-    var pct = Math.round((seg.valor/total)*100);
-    leyendaHtml += '<div style="display:flex;align-items:center;gap:6px;background:var(--gris);border-radius:var(--rs);padding:6px 8px;">';
-    leyendaHtml += '<div style="width:12px;height:12px;border-radius:3px;background:'+seg.color+';flex-shrink:0;"></div>';
-    leyendaHtml += '<div><div style="font-size:11px;font-weight:600;">'+seg.label+'</div>';
-    leyendaHtml += '<div style="font-size:10px;color:var(--texto3);">S/ '+seg.valor.toFixed(2)+' ('+pct+'%)</div></div></div>';
+    var pct=Math.round((seg.valor/total)*100);
+    leyendaHtml+='<div style="display:flex;align-items:center;gap:6px;background:var(--gris);border-radius:var(--rs);padding:6px 8px;">'
+      +'<div style="width:12px;height:12px;border-radius:3px;background:'+seg.color+';flex-shrink:0;"></div>'
+      +'<div><div style="font-size:11px;font-weight:600;">'+seg.label+'</div>'
+      +'<div style="font-size:10px;color:var(--texto3);">S/ '+seg.valor.toFixed(2)+' ('+pct+'%)</div></div></div>';
   });
-  document.getElementById('torta-leyenda').innerHTML = leyendaHtml;
+  document.getElementById('torta-leyenda').innerHTML=leyendaHtml;
 }
 function renderGraficoDias(regs){
   var dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -1001,16 +1089,19 @@ function guardarVentaManual(){
 function guardarGasto(){
   var desc = document.getElementById('g-desc').value.trim();
   var monto = parseFloat(document.getElementById('g-monto').value)||0;
+  var categoria = document.getElementById('g-categoria').value;
   if(!desc||monto<=0){mostrarToast('Completa descripción y monto','error');return;}
   var ahora = new Date();
   registros.push({
     id:Date.now(), tipo:'gasto',
     fecha:ahora.toISOString(),
     fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
-    desc:desc, total:monto
+    desc:desc, categoria:categoria, total:monto
   });
   guardarCaja();
-  enviarASheets({tipo:'gasto', fecha:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}), desc:desc, total:monto});
+  enviarASheets({tipo:'gasto', fecha:ahora.toISOString(),
+    fechaStr:ahora.toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'}),
+    desc:desc, categoria:categoria, total:monto});
   document.getElementById('g-desc').value='';
   document.getElementById('g-monto').value='';
   mostrarToast('Gasto registrado ✓','ok');
@@ -1323,12 +1414,29 @@ function renderExportar(){
   });
   txt += sep+sep+sep+sep+sep+'TOTAL'+sep+tv.toFixed(2)+nl+nl;
 
-  txt += '=== GASTOS ==='+nl;
-  txt += 'Fecha'+sep+'Descripción'+sep+'Monto'+nl;
+  txt += '=== GASTOS POR CATEGORÍA ==='+nl;
+  var catLabelsExp = {
+    'compra':'Compra pollos','servicios':'Servicios (luz/agua)',
+    'local':'Local/alquiler','personal':'Personal/sueldo',
+    'transporte':'Transporte','otros':'Otros'
+  };
+  var catTotExp = {};
   gastos.forEach(function(g){
-    txt += (g.fechaStr||'')+sep+(g.desc||'')+sep+g.total.toFixed(2)+nl;
+    var cat = g.categoria||(g.desc&&g.desc.indexOf('Compra:')!==-1?'compra':'otros');
+    catTotExp[cat]=(catTotExp[cat]||0)+g.total;
   });
-  txt += sep+'TOTAL GASTOS'+sep+tg.toFixed(2)+nl+nl;
+  Object.keys(catTotExp).forEach(function(cat){
+    txt += (catLabelsExp[cat]||cat)+sep+'S/ '+catTotExp[cat].toFixed(2)+nl;
+  });
+  txt += 'TOTAL GASTOS'+sep+'S/ '+tg.toFixed(2)+nl+nl;
+
+  txt += '=== DETALLE DE GASTOS ==='+nl;
+  txt += 'Fecha'+sep+'Categoría'+sep+'Descripción'+sep+'Monto'+nl;
+  gastos.forEach(function(g){
+    var cat = g.categoria||(g.desc&&g.desc.indexOf('Compra:')!==-1?'compra':'otros');
+    txt += (g.fechaStr||'')+sep+(catLabelsExp[cat]||cat)+sep+(g.desc||'')+sep+g.total.toFixed(2)+nl;
+  });
+  txt += sep+sep+'TOTAL'+sep+tg.toFixed(2)+nl+nl;
 
   // Ranking clientes
   var clientes = {};
@@ -1359,6 +1467,176 @@ function copiarTextoExportar(){
   }catch(e){
     mostrarToast('Selecciona el texto y copia manualmente','error');
   }
+}
+
+// ── AGENDA ──
+var AGENDA_KEY = 'avicen_agenda_v1';
+var agendaMes = new Date().getMonth();
+var agendaAnio = new Date().getFullYear();
+var recordatorios = [];
+
+function cargarRecordatorios(){
+  try{var r=localStorage.getItem(AGENDA_KEY);if(r)recordatorios=JSON.parse(r);}catch(e){}
+}
+function guardarRecordatorios(){
+  try{localStorage.setItem(AGENDA_KEY,JSON.stringify(recordatorios));}catch(e){}
+}
+
+function cambiarMes(delta){
+  agendaMes+=delta;
+  if(agendaMes>11){agendaMes=0;agendaAnio++;}
+  if(agendaMes<0){agendaMes=11;agendaAnio--;}
+  renderAgenda();
+}
+
+function renderAgenda(){
+  cargarRecordatorios();
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('agenda-mes-titulo').textContent=meses[agendaMes]+' '+agendaAnio;
+
+  // Calcular ventas por día del mes
+  var ventasPorDia={};
+  var maxVenta=0;
+  registros.filter(function(r){return r.tipo==='venta';}).forEach(function(r){
+    var f=new Date(r.fecha);
+    if(f.getMonth()===agendaMes&&f.getFullYear()===agendaAnio){
+      var key=f.getDate();
+      ventasPorDia[key]=(ventasPorDia[key]||0)+(r.montoReal!==undefined?r.montoReal:r.total);
+      if(ventasPorDia[key]>maxVenta) maxVenta=ventasPorDia[key];
+    }
+  });
+
+  // Recordatorios del mes
+  var recPorDia={};
+  recordatorios.forEach(function(rec){
+    var f=new Date(rec.fecha+'T12:00:00');
+    if(f.getMonth()===agendaMes&&f.getFullYear()===agendaAnio){
+      var key=f.getDate();
+      if(!recPorDia[key]) recPorDia[key]=[];
+      recPorDia[key].push(rec);
+    }
+  });
+
+  var primerDia=new Date(agendaAnio,agendaMes,1).getDay();
+  var diasMes=new Date(agendaAnio,agendaMes+1,0).getDate();
+  var hoy=new Date();
+  var esHoy=hoy.getMonth()===agendaMes&&hoy.getFullYear()===agendaAnio;
+
+  var html='';
+  for(var i=0;i<primerDia;i++) html+='<div></div>';
+  for(var d=1;d<=diasMes;d++){
+    var venta=ventasPorDia[d]||0;
+    var recs=recPorDia[d]||[];
+    var esHoyDia=esHoy&&hoy.getDate()===d;
+    var intensidad=maxVenta>0?venta/maxVenta:0;
+    var r=Math.round(45+(1-intensidad)*170);
+    var g=Math.round(106+(1-intensidad)*149);
+    var b=Math.round(79+(1-intensidad)*120);
+    var bg=venta>0?'rgb('+r+','+g+','+b+')':'var(--gris)';
+    var textColor=venta>0&&intensidad>0.4?'white':'var(--texto)';
+    html+='<div onclick="verDiaAgenda('+d+')" style="'
+      +'background:'+bg+';color:'+textColor+';'
+      +'border-radius:6px;padding:4px 2px;text-align:center;cursor:pointer;min-height:46px;'
+      +(esHoyDia?'border:2px solid var(--dorado);':'border:1px solid transparent;')
+      +'">'
+      +'<div style="font-size:12px;font-weight:'+(esHoyDia?'700':'500')+'">'+d+'</div>'
+      +(venta>0?'<div style="font-size:9px;line-height:1.2">S/'+Math.round(venta)+'</div>':'')
+      +(recs.length?'<div style="font-size:10px">'+recs.map(function(r){return r.tipo==='compra'?'🐔':r.tipo==='pago'?'💸':'📌';}).join('')+'</div>':'')
+      +'</div>';
+  }
+  document.getElementById('agenda-calendario').innerHTML=html;
+  renderRecordatoriosProximos();
+}
+
+function verDiaAgenda(dia){
+  var f=new Date(agendaAnio,agendaMes,dia);
+  var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var titulo=dia+' de '+meses[agendaMes]+' '+agendaAnio;
+
+  var ventasDia=registros.filter(function(r){
+    var fd=new Date(r.fecha);
+    return r.tipo==='venta'&&fd.getDate()===dia&&fd.getMonth()===agendaMes&&fd.getFullYear()===agendaAnio;
+  });
+  var recsDia=recordatorios.filter(function(rec){
+    var fd=new Date(rec.fecha+'T12:00:00');
+    return fd.getDate()===dia&&fd.getMonth()===agendaMes&&fd.getFullYear()===agendaAnio;
+  });
+
+  var html='';
+  if(ventasDia.length){
+    var totalDia=ventasDia.reduce(function(s,r){return s+(r.montoReal!==undefined?r.montoReal:r.total);},0);
+    html+='<div style="font-weight:600;color:var(--verde);margin-bottom:8px;">💰 Total: S/ '+totalDia.toFixed(2)+' · '+ventasDia.length+' ventas</div>';
+    ventasDia.forEach(function(v){
+      html+='<div style="font-size:12px;padding:6px 0;border-bottom:1px solid var(--gris);">'
+        +'👤 '+v.cliente+' · S/ '+(v.montoReal||v.total).toFixed(2)
+        +' · '+(v.pago==='yape'?'💜 Yape':'💵 Efectivo')+'</div>';
+    });
+  } else {
+    html+='<div style="font-size:13px;color:var(--texto3);">Sin ventas este día</div>';
+  }
+  if(recsDia.length){
+    html+='<div style="font-weight:600;margin:10px 0 6px;">⏰ Recordatorios:</div>';
+    recsDia.forEach(function(rec,i){
+      var icono=rec.tipo==='compra'?'🐔':rec.tipo==='pago'?'💸':'📌';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;border-bottom:1px solid var(--gris);">'
+        +'<span>'+icono+' '+rec.desc+'</span>'
+        +'<button onclick="eliminarRecordatorio(\''+rec.id+'\')" style="background:none;border:none;color:var(--rojo);cursor:pointer;font-size:14px;">✕</button>'
+        +'</div>';
+    });
+  }
+
+  document.getElementById('agenda-detalle-titulo').textContent='📅 '+titulo;
+  document.getElementById('agenda-detalle-contenido').innerHTML=html;
+  document.getElementById('agenda-detalle-wrap').style.display='block';
+  document.getElementById('agenda-detalle-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function agregarRecordatorio(){
+  var fecha=document.getElementById('rec-fecha').value;
+  var tipo=document.getElementById('rec-tipo').value;
+  var desc=document.getElementById('rec-desc').value.trim();
+  if(!fecha||!desc){mostrarToast('Completa fecha y descripción','error');return;}
+  cargarRecordatorios();
+  recordatorios.push({id:Date.now().toString(),fecha:fecha,tipo:tipo,desc:desc});
+  guardarRecordatorios();
+  document.getElementById('rec-fecha').value='';
+  document.getElementById('rec-desc').value='';
+  mostrarToast('Recordatorio guardado ✓','ok');
+  renderAgenda();
+}
+
+function eliminarRecordatorio(id){
+  cargarRecordatorios();
+  recordatorios=recordatorios.filter(function(r){return r.id!==id;});
+  guardarRecordatorios();
+  renderAgenda();
+  document.getElementById('agenda-detalle-wrap').style.display='none';
+  mostrarToast('Recordatorio eliminado','ok');
+}
+
+function renderRecordatoriosProximos(){
+  var hoy=new Date();hoy.setHours(0,0,0,0);
+  var proximos=recordatorios.filter(function(r){
+    var f=new Date(r.fecha+'T12:00:00');f.setHours(0,0,0,0);
+    return f>=hoy;
+  }).sort(function(a,b){return new Date(a.fecha)-new Date(b.fecha);}).slice(0,5);
+
+  var lista=document.getElementById('agenda-recordatorios-lista');
+  if(!proximos.length){lista.innerHTML='<div style="text-align:center;color:var(--texto3);font-size:13px;padding:8px;">Sin recordatorios próximos</div>';return;}
+  var html='';
+  proximos.forEach(function(rec){
+    var f=new Date(rec.fecha+'T12:00:00');
+    var meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    var icono=rec.tipo==='compra'?'🐔':rec.tipo==='pago'?'💸':'📌';
+    var diasRest=Math.round((f-hoy)/(1000*60*60*24));
+    var cuandoStr=diasRest===0?'Hoy':diasRest===1?'Mañana':'En '+diasRest+' días';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gris);">'
+      +'<div><div style="font-size:13px;font-weight:500;">'+icono+' '+rec.desc+'</div>'
+      +'<div style="font-size:11px;color:var(--texto3);">'+f.getDate()+' '+meses[f.getMonth()]+' · '+cuandoStr+'</div></div>'
+      +'<button onclick="eliminarRecordatorio(\''+rec.id+'\')" style="background:none;border:none;color:var(--rojo);cursor:pointer;font-size:16px;">✕</button>'
+      +'</div>';
+  });
+  lista.innerHTML=html;
 }
 
 // ── CAMBIAR CLAVE ──
